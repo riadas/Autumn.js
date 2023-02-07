@@ -176,6 +176,18 @@
         outline: 0;
       }
 
+      datalist {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        writing-mode: vertical-lr;
+        width: 90px;
+      }
+
+      option {
+        padding: 0;
+      }
+
     </style>
   </head>
   <body>
@@ -202,7 +214,7 @@
             <button id="plug-button" class="control-button example-button">WATER PLUG</button>
             <button id="ice-button" class="control-button example-button">ICE</button>
             <button id="tetris-button" style="display: none" class="control-button">TETRIS</button>
-            <button id="hatch-button" style="display: none" class="control-button">EGG</button>
+            <button id="hatch-button" class="control-button example-button">HATCH</button>
             <button id="snake-button" style="display: none" class="control-button">SNAKE</button>
             <button id="magnets-button-2" style="display: none" class="control-button">MAGNETS II</button>
             <button id="magnets-button-3" style="display: none" class="control-button">MAGNETS III</button>
@@ -224,7 +236,7 @@
             <button id="gravity-button-3" class="control-button example-button">GRAVITY III</button>
             <button id="gravity-button-4" class="control-button example-button">GRAVITY IV</button>
             <button id="charge-button" style="display: none" class="control-button">CHARGE</button>
-            <button id="egg-button" style="display: none" class="control-button">EGG</button>
+            <button id="egg-button" class="control-button example-button">EGG</button>
             <button id="balloon-button" style="display: none" class="control-button">BALLOON</button>
             <button id="wind-button" class="control-button example-button">WIND</button>
             <button id="paint-button" class="control-button example-button">PAINT</button>
@@ -246,6 +258,12 @@
             <button id="jump-button" class="control-button example-button">JUMP</button>
             <button id="bullets-button" class="control-button example-button">BULLETS</button>
             <button id="levels-button" class="control-button example-button">LEVELS</button>
+
+            <button id="foraging-button" class="control-button example-button">FORAGE</button>
+            <button id="spider-button" class="control-button example-button">SPIDER</button>
+            <button id="river-1-button" class="control-button example-button">RIVER I</button>
+            <button id="river-2-button" class="control-button example-button">RIVER II</button>
+
             <button id="random-button" style="display: none" style="background-color: orange !important" class="control-button">RANDOM SCENE</button>
             <button id="random-button-2" style="display: none; background-color: orange !important" class="control-button">RANDOM PROGRAM</button>
             <button id="random-button-3" style="display: none; background-color: orange !important" class="control-button">RANDOM GROUPED PROGRAM</button>
@@ -262,6 +280,9 @@
               <div style="display: flex; margin-top: 10px;">
                   <button id="play-button" class="control-button" type="submit" id="run" style="margin-right: 10px;">▶</button>
                   <button id="restart-button" class="control-button" type="submit" style="font-size: 15px; font-weight: bold;">↻</button>
+                  <button id="slider-button" class="control-button" type="submit" style="font-size: 15px; font-weight: bold;"><input id="slider" style="width: 90px;" id="pi_input" type="range" min="50" max="300" step="50" /> </button>
+                
+                  
                   <button id="save-button" style="display: none" class="control-button" type="submit" style="font-size: 15px; font-weight: bold;"><i class="fa fa-floppy-o" aria-hidden="true"></i></button>
                   <button id="history-button" style="display: none" class="control-button" type="submit" style="font-size: 15px; font-weight: bold;"><i class="fa fa-history" aria-hidden="true"></i></button>
                   <button id="toggle-button" class="control-button">TOGGLE VIEW</button>
@@ -309,6 +330,11 @@
             //console.log(cell.id)
             cell.addEventListener("click", function () { click(parseInt(cell.id)); });
           })
+
+          document.getElementById("slider").addEventListener("input", (event) => {
+                                                                                        timestep = event.target.value;
+                                                                                      });
+
           document.getElementById("play-button").addEventListener("click", playOrPauseClick);
           document.getElementById("restart-button").addEventListener("click", restartClick);
           document.getElementById("compile-button").addEventListener("click", compileClick);
@@ -363,6 +389,12 @@
           document.getElementById("jump-button").addEventListener("click", jumpClick);
           document.getElementById("bullets-button").addEventListener("click", bulletsClick);
           document.getElementById("levels-button").addEventListener("click", levelsClick);
+
+          document.getElementById("foraging-button").addEventListener("click", foragingClick);
+          document.getElementById("spider-button").addEventListener("click", spiderClick);
+          document.getElementById("river-1-button").addEventListener("click", river1Click);
+          document.getElementById("river-2-button").addEventListener("click", river2Click);
+
           document.getElementById("toggle-button").addEventListener("click", toggleClick);
           document.getElementById("random-button").addEventListener("click", randomClick);
           document.getElementById("random-button-2").addEventListener("click", randomClick2);
@@ -429,12 +461,19 @@
             jumpButton = document.getElementById("jump-button");
             bulletsButton = document.getElementById("bullets-button");
             levelsButton = document.getElementById("levels-button");
+
+            foragingButton = document.getElementById("foraging-button");
+            spiderButton = document.getElementById("spider-button");
+            river1Button = document.getElementById("river-1-button");
+            river2Button = document.getElementById("river-2-button");
+
             randomButton = document.getElementById("random-button");
             randomButton2 = document.getElementById("random-button-2");
             randomButton3 = document.getElementById("random-button-3");
             synthesizeButton = document.getElementById("synthesize-button");
     
             playButton = document.getElementById("play-button");
+            sliderButton = document.getElementById("slider-button");
             restartButton = document.getElementById("restart-button");
             saveButton = document.getElementById("save-button");
             historyButton = document.getElementById("history-button");
@@ -449,9 +488,10 @@
             if (compiled) {
               compileButton.innerHTML = "RESET <i style='font-size: medium' class='fa fa-code' aria-hidden='true'></i>";
               playButton.style.display = "";
+              sliderButton.style.display = "";
               restartButton.style.display = "";
-              saveButton.style.display = "";
-              historyButton.style.display = "";
+              saveButton.style.display = "none";
+              historyButton.style.display = "none";
     
               antsButton.classList.add("disabled");
               particlesButton.classList.add("disabled");
@@ -499,6 +539,12 @@
               jumpButton.classList.add("disabled");
               bulletsButton.classList.add("disabled");
               levelsButton.classList.add("disabled");
+
+              foragingButton.classList.add("disabled");
+              spiderButton.classList.add("disabled");
+              river1Button.classList.add("disabled");
+              river2Button.classList.add("disabled");
+
               plugButton.classList.add("disabled");
               iceButton.classList.add("disabled");
               tetrisButton.classList.add("disabled");
@@ -510,6 +556,7 @@
               
               if (!history_mode) {
                 playButton.classList.remove("history-mode");
+                sliderButton.classList.remove("history-mode");
                 restartButton.classList.remove("history-mode");
                 saveButton.classList.remove("history-mode");
                 historyButton.classList.remove("history-mode");
@@ -522,6 +569,7 @@
                   synthesizeButton.classList.remove("disabled");
                   playButton.innerText = "▶";
                   playButton.style.fontSize = "13px";
+                  sliderButton.classList.remove("disabled");
                   if (not_run_yet) {
                     restartButton.classList.add("disabled");
                     saveButton.classList.add("disabled");
@@ -536,12 +584,14 @@
                   synthesizeButton.classList.add("disabled");
                   playButton.innerText = "▌▌";
                   playButton.style.fontSize = "9px";
+                  sliderButton.classList.add("disabled");
                   restartButton.classList.add("disabled");
                   saveButton.classList.add("disabled");
                   historyButton.classList.add("disabled");
                 }
               } else {
                 playButton.classList.add("history-mode");
+                sliderButton.classList.add("history-mode");
                 restartButton.classList.add("history-mode");
                 saveButton.classList.add("history-mode");
                 historyButton.classList.add("history-mode");
@@ -577,6 +627,7 @@
               compileButton.classList.remove("history-mode")
               compileButton.innerHTML = "COMPILE <i style='font-size: medium' class='fa fa-code' aria-hidden='true'></i>"; // 
               playButton.style.display = "none";
+              sliderButton.style.display = "none";
               restartButton.style.display = "none";
               saveButton.style.display = "none";
               historyButton.style.display = "none";
@@ -627,6 +678,12 @@
               jumpButton.classList.remove("disabled");
               bulletsButton.classList.remove("disabled");
               levelsButton.classList.remove("disabled");
+
+              foragingButton.classList.remove("disabled");
+              spiderButton.classList.remove("disabled");
+              river1Button.classList.remove("disabled");
+              river2Button.classList.remove("disabled");
+
               tetrisButton.classList.remove("disabled");
               hatchButton.classList.remove("disabled");
               snakeButton.classList.remove("disabled");
@@ -660,7 +717,7 @@
             })
           } 
         
-          var labeled_names = ['PARTICLES', 'ANTS', 'LIGHTS', 'MAGNETS', 'WATER PLUG', 'ICE', 'DISEASE', 'SPACE INVADERS', 'SOKOBAN', 'GROW', 'MARIO', 'SAND', 'GRAVITY', 'GRAVITY II', 'GRAVITY III', 'GRAVITY IV', 'WIND', 'PAINT', 'CHASE', 'COINS', 'COUNT I', 'COUNT II', 'COUNT III', 'COUNT IV', 'COUNT V', 'ICE RINK', 'DOUBLE COUNT I', 'DOUBLE COUNT II', 'JUMP', 'BULLETS', 'LEVELS', 'SYNTHESIZE']
+          var labeled_names = ['PARTICLES', 'ANTS', 'LIGHTS', 'MAGNETS', 'WATER PLUG', 'ICE', 'HATCH', 'DISEASE', 'SPACE INVADERS', 'SOKOBAN', 'GROW', 'MARIO', 'SAND', 'GRAVITY', 'GRAVITY II', 'GRAVITY III', 'GRAVITY IV', 'EGG', 'WIND', 'PAINT', 'CHASE', 'COINS', 'COUNT I', 'COUNT II', 'COUNT III', 'COUNT IV', 'COUNT V', 'ICE RINK', 'DOUBLE COUNT I', 'DOUBLE COUNT II', 'JUMP', 'BULLETS', 'LEVELS', 'FORAGING', 'SPIDER', 'RIVER I', 'RIVER II'];
           var numbered_names = [...Array(document.getElementsByClassName("example-button").length).keys()].map(x => (x + 1).toString());
           index = 0;
           Array.from(document.getElementsByClassName("example-button")).forEach(function (button) {
@@ -917,7 +974,7 @@
     
           function step_time() {
             // console.log("step_time");
-            env = step(aex, env, user_event);
+            env = step(aex, env);
 
             var background = env.state.scene.background  
             var cells = interpret({ "head" : "call", "args": ["renderScene", [env.state.scene]]}, env)[0].map(cell => [cell.position.x, cell.position.y, JSON.stringify(cell.color).slice(8, -2)]);
@@ -3241,6 +3298,378 @@
       (= stop (updateObj stop "gold" (! (.. stop gold)))))  
 )`)
       }
+
+function foragingClick() {
+  myCodeMirror.setValue(`(program
+  (= GRID_SIZE 16)
+  
+  (object Ant (Cell 0 0 "gray"))
+  (object Food (: neighbors Int) (Cell 0 0 "green"))
+  (object Button (: color String) (Cell 0 0 color))
+  
+  (: ants (List Ant))
+  (= ants (initnext (list (Ant (Position 5 5)) (Ant (Position 1 14)) (Ant (Position 13 3)) (Ant (Position 9 8)))  (prev ants)))
+  
+  (: foods (List Food))
+  (= foods (initnext (map (--> pos (Food 3 pos)) (rect (Position 11 11) (Position 12 12))) (prev foods)))
+  
+  (: antButton Button)
+  (= antButton (initnext (Button "dimgray" (Position 5 0)) (prev antButton)))
+  
+  (: foodButton Button)
+  (= foodButton (initnext (Button "darkgreen" (Position 9 0)) (prev foodButton)))  
+  
+  (: active String)
+  (= active (initnext "food" (prev active)))
+  
+  (on true (= ants (updateObj ants (--> obj (uniformChoice (list (moveLeftNoCollision (prev obj)) (moveRightNoCollision (prev obj)) (moveUpNoCollision (prev obj)) (moveDownNoCollision (prev obj))))))))
+  (on true (= ants (updateObj ants (--> obj (move (prev obj) (unitVector (prev obj) (closest (prev obj) Food)))) (--> obj (adj (prev obj) (filter (--> obj2 (> (.. obj2 neighbors) 0)) (prev foods)) 1)))))
+
+  (on true (= foods (updateObj foods (--> obj (removeObj (prev obj))) (--> obj (& (> (.. obj neighbors) 0) (intersects (prev obj) (prev ants)))))))
+
+  (on (& (& clicked (isFree click)) (== active "ant")) (= ants (addObj ants (Ant (Position (.. click x) (.. click y))))))
+
+  (on (clicked foodButton) (= active "food"))
+  (on (clicked antButton) (= active "ant"))
+  
+  (on true (= foods (updateObj 
+                      foods 
+                      (--> obj (updateObj obj "neighbors" (length (intersect (filter (--> obj2 (.. obj2 alive)) foods) (adjacentObjsDiag obj))))) 
+					  (--> obj (>= (.. obj neighbors) 0)))))
+  (on true (= foods (updateObj 
+                      foods 
+                      (--> obj (updateObj obj "neighbors" (- (.. obj neighbors) 1))) 
+					  (--> obj (<= (.. obj neighbors) 0))
+                      )))
+  
+  (on (& true (> (length (filter (--> obj (& (.. obj alive) (<= (.. obj neighbors) -20))) foods)) 0)) (= foods (addObj foods (map (--> pos (Food 3 pos)) (uniformChoice (adjPositions (.. (first (filter (--> obj (& (.. obj alive) (<= (.. obj neighbors) -20))) foods) ) origin)) (uniformChoice (list 1 2 3 4))  )))))
+  (on (> (length (filter (--> obj (& (.. obj alive) (<= (.. obj neighbors) -20))) foods)) 0) (= foods (updateObj foods (--> obj (updateObj obj "neighbors" (length (intersect (filter (--> obj (.. obj alive)) foods) (adjacentObjsDiag obj)))) ) (--> obj (== (.. (first (filter (--> obj2 (& (.. obj2 alive) (<= (.. obj2 neighbors) -20))) foods)) id) (.. obj id)) ) )))
+  
+  (on (& (& clicked (isFree click)) (== active "food")) (= foods (addObj foods (map (--> pos (Food 3 pos)) (rect (Position (.. click x) (.. click y)) (move (Position (.. click x) (.. click y)) (Position 1 1)))))))
+
+)`);
+}
+
+function spiderClick() {
+  myCodeMirror.setValue(`(program
+  (= GRID_SIZE 17)
+  (= background "skyblue")
+  (object Web (Cell 0 0 "white"))
+  (object Spider (Cell 0 0 "green"))
+  (object Fly (Cell 0 0 "black"))
+  (object StuckFly (Cell 0 0 "brown"))
+  (object DeadFly (Cell 0 0 "white"))
+  (object Button (: color String) (Cell 0 0 color))
+  
+  (: web (List Web))
+  (= web (initnext (map (--> obj (move obj (Position 6 -6))) (list (Web (Position 8 8))
+                         (Web (Position 8 7))
+                         (Web (Position 8 6))
+                         (Web (Position 8 9))                     
+                         (Web (Position 8 10))
+						 
+                     	 (Web (Position 6 8))
+                         (Web (Position 6 7))
+                         (Web (Position 6 6))
+                         (Web (Position 6 9))                     
+                         (Web (Position 6 10))                     
+                     
+                         (Web (Position 10 8))
+                         (Web (Position 10 7))
+                         (Web (Position 10 6))
+                         (Web (Position 10 9))                     
+                         (Web (Position 10 10)) 
+                     
+                         (Web (Position 7 8))
+                         (Web (Position 9 8))                     
+						 
+                         (Web (Position 7 6))
+                         (Web (Position 9 6))                     
+                     
+                         (Web (Position 7 10))
+                         (Web (Position 9 10))
+                                          
+                         (Web (Position 7 11))
+                         (Web (Position 7 12))
+                         (Web (Position 8 12))                     
+                         (Web (Position 9 12))
+                         (Web (Position 9 11))
+                     
+                         (Web (Position 5 7))
+                         (Web (Position 4 7))
+                         (Web (Position 4 8))                     
+                         (Web (Position 4 9))
+                         (Web (Position 5 9))
+
+                         (Web (Position 10 12))
+                         (Web (Position 9 13))
+                         (Web (Position 9 14))                     
+                         (Web (Position 10 14))
+                         (Web (Position 10 15))
+
+                         (Web (Position 4 6))
+                         (Web (Position 3 7))
+                         (Web (Position 2 7))                     
+                         (Web (Position 2 6))
+                         (Web (Position 1 6))
+
+                                                               
+
+                   ) )(prev web)))
+  
+  (: flies (List Fly))
+  (= flies (initnext (list (Fly (Position 4 4)) (Fly (Position 14 14)) (Fly (Position 4 14)) (Fly (Position 10 10)) (Fly (Position 7 14))) (prev flies)))
+
+  (: stuckFlies (List StuckFly))
+  (= stuckFlies (initnext (list) (prev stuckFlies)))
+
+  (: deadFlies (List DeadFly))
+  (= deadFlies (initnext (list) (prev deadFlies)))
+  
+  (: spider Spider)
+  (= spider (initnext (Spider (Position 12 4)) (prev spider)))
+  
+  (: flyButton Button)
+  (= flyButton (initnext (Button "black" (Position 6 16)) (prev flyButton)))
+  
+  (: webButton Button)
+  (= webButton (initnext (Button "white" (Position 10 16)) (prev webButton)))
+
+  (: active String)
+  (= active (initnext "fly" (prev active)))
+  
+  (: time Int)
+  (= time (initnext 0 (+ (prev time) 1)))
+  
+  (on true (= flies (updateObj flies (--> obj (uniformChoice (list (moveLeft (prev obj)) (moveRight (prev obj)) (moveUp (prev obj)) (moveDown (prev obj))))) (--> obj (! (intersects (prev obj) (prev web)))))))
+  (on true (= flies (updateObj flies (--> obj (prev obj)) (--> obj (! (isWithinBounds obj))))))  
+  (on true (= stuckFlies (updateObj stuckFlies (--> obj (move (prev obj) (Position 
+                                                                  (* (.. (unitVector (prev obj) (closest (prev obj) Spider)) x) -1)
+                                                                  (* (.. (unitVector (prev obj) (closest (prev obj) Spider)) y) -1)
+                                                               ))) 
+                                     (--> obj (& (== (/ (prev time) 2) 0) (intersects (prev obj) (prev web)))))))    
+  (on true (= stuckFlies (updateObj stuckFlies (--> obj (prev obj)) (--> obj (! (intersects obj (prev web)))))))
+
+  (on (intersects (prev flies) (prev web)) (let ((= flies (removeObj flies (--> obj (intersects (prev obj) (prev web)))))
+                                                 (= stuckFlies (addObj stuckFlies (map (--> obj2 (StuckFly (.. obj2 origin))) (filter (--> obj (intersects (prev obj) (prev web))) (prev flies)) )))
+                                                 )))
+  (on true (= stuckFlies (removeObj stuckFlies (--> obj (intersects (prev obj) (prev spider))))))
+  (on (intersects (prev stuckFlies) (prev web)) (= spider (move spider (unitVector (prev spider) (closest (prev spider) StuckFly)))))
+  (on (! (intersects spider (prev web))) (= spider (move spider (unitVector spider (closest spider Web)))))
+  (on (& (intersects (prev stuckFlies) (prev web)) (== (.. spider origin) (.. (prev spider) origin))) (= spider (move (prev spider) (displacement (.. (prev spider) origin) (uniformChoice (intersect (map (--> obj (.. obj origin)) (prev web)) (adjPositionsDiag (.. (prev spider) origin))))))))                                                     
+
+
+  (on (clicked flyButton) (= active "fly"))                                                      
+  (on (clicked webButton) (= active "web"))                                                      
+                                                      
+  (on (& (& clicked (isFree click)) (== (prev active) "fly")) (= flies (addObj flies (Fly (Position (.. click x) (.. click y)))))) 
+  (on (& (& clicked (isFree click)) (== (prev active) "web")) (= web (addObj web (Web (Position (.. click x) (.. click y)))))) 
+
+)`);
+}
+
+function river1Click() {
+  myCodeMirror.setValue(`(program
+  (= GRID_SIZE 16)
+
+  (object Sand (vcat (map (--> pos (Cell pos "sandybrown")) (vcat (rect (Position 0 0) (Position 2 15)) (rect (Position 13 0) (Position 15 15))))))
+  (object SlowWater (map (--> pos (Cell pos "blue")) (vcat (rect (Position 3 0) (Position 5 15)) (rect (Position 10 0) (Position 12 15))) ))
+  (object FastWater (map (--> pos (Cell pos "darkblue")) (rect (Position 6 0) (Position 9 15))))
+  (object LightRock (Cell 0 0 "gray"))
+  (object HeavyRock (Cell 0 0 "black"))
+  (object Agent (Cell 0 0 "maroon"))
+
+  (: sand Sand)
+  (= sand (initnext (Sand (Position 0 0)) sand))
+
+  (: slowWater SlowWater)
+  (= slowWater (initnext (SlowWater (Position 0 0)) slowWater))
+
+  (: fastWater FastWater)
+  (= fastWater (initnext (FastWater (Position 0 0)) fastWater))
+
+  (: lightRock (List LightRock))
+  (= lightRock (initnext 
+                 (map (--> pos (LightRock pos)) 
+                   (list)) 
+                 lightRock))
+
+  (: heavyRock (List HeavyRock))
+  (= heavyRock (initnext 
+                 (map (--> pos (HeavyRock pos))
+                   (list (Position 1 8)
+                         (Position 1 6)
+                         (Position 2 5)
+                         (Position 2 9)
+                         (Position 2 7)
+                         (Position 14 8)
+                         (Position 14 6)
+                         (Position 13 5)
+                         (Position 13 9)
+                         (Position 13 7)
+                   )) 
+                 heavyRock))
+
+  (: agent Agent)
+  (= agent (initnext (Agent (Position 0 0)) (prev agent)))
+  
+  (: time Int)
+  (= time (initnext 0 (+ 1 (prev time))))
+
+  (on (& (| (| (intersects agent heavyRock) (intersects agent lightRock)) (intersects agent sand)) left) (= agent (moveLeft agent)))
+  (on (& (| (| (intersects agent heavyRock) (intersects agent lightRock)) (intersects agent sand)) right) (= agent (moveRight agent)))
+  (on (& (| (| (intersects agent heavyRock) (intersects agent lightRock)) (intersects agent sand)) up) (= agent (moveUp agent)))
+  (on (& (| (| (intersects agent heavyRock) (intersects agent lightRock)) (intersects agent sand)) down) (= agent (moveDown agent)))
+
+  (on (& (intersects (prev agent) slowWater) (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) ) (= agent (moveDown (prev agent))))
+  (on (& (== (% (prev time) 1) 0) (& (& (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) (intersects (prev agent) slowWater)) left)) (= agent (moveDown (moveLeft (prev agent)))))
+  (on (& (== (% (prev time) 1) 0) (& (& (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) (intersects (prev agent) slowWater)) right)) (= agent (moveDown (moveRight (prev agent)))))
+  (on (& (== (% (prev time) 1) 0) (& (& (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) (intersects (prev agent) slowWater)) up)) (= agent (moveDown (moveUp (prev agent)))))
+  (on (& (== (% (prev time) 1) 0) (& (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) (& (intersects (prev agent) slowWater) down))) (= agent (moveDown (moveDown (prev agent)))))
+
+  (on (& (intersects (prev agent) fastWater) (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock)))) (= agent (moveDown (moveDown (prev agent)))))
+  (on (& (== (% (prev time) 1) 0) (& (& (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) (intersects (prev agent) fastWater)) left)) (= agent (moveDown (moveDown (moveLeft (prev agent))))))
+  (on (& (== (% (prev time) 1) 0) (& (& (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) (intersects (prev agent) fastWater)) right)) (= agent (moveDown (moveDown (moveRight (prev agent))))))
+  (on (& (== (% (prev time) 1) 0) (& (& (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) (intersects (prev agent) fastWater)) up)) (= agent (moveDown (moveDown (moveUp (prev agent))))))
+  (on (& (== (% (prev time) 1) 0) (& (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) (& (intersects (prev agent) fastWater) down))) (= agent (moveDown (moveDown (moveDown (prev agent))))))
+
+  
+  (on true (= lightRock (updateObj lightRock (--> obj (moveLeft (prev obj))) (--> obj (& left (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveLeft (prev agent)) (prev obj))))))))            
+  (on true (= lightRock (updateObj lightRock (--> obj (moveRight (prev obj))) (--> obj (& right (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveRight (prev agent)) (prev obj))))))))            
+  (on true (= lightRock (updateObj lightRock (--> obj (moveUp (prev obj))) (--> obj (& up (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveUp (prev agent)) (prev obj))))))))            
+  (on true (= lightRock (updateObj lightRock (--> obj (moveDown (prev obj))) (--> obj (& down (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveDown (prev agent)) (prev obj))))))))            
+  (on true (= lightRock (updateObj lightRock (--> obj (moveDown (prev obj))) (--> obj (& (! (intersects (prev obj) (prev heavyRock))) (intersects (prev obj) fastWater))))))
+
+  (on true (= heavyRock (updateObj heavyRock (--> obj (moveLeft (prev obj))) (--> obj (& left (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveLeft (prev agent)) (prev obj))))))))            
+  (on true (= heavyRock (updateObj heavyRock (--> obj (moveRight (prev obj))) (--> obj (& right (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveRight (prev agent)) (prev obj))))))))            
+  (on true (= heavyRock (updateObj heavyRock (--> obj (moveUp (prev obj))) (--> obj (& up (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveUp (prev agent)) (prev obj))))))))            
+  (on true (= heavyRock (updateObj heavyRock (--> obj (moveDown (prev obj))) (--> obj (& down (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveDown (prev agent)) (prev obj))))))))            
+
+  (on (> (+ (length (filter (--> obj (& left (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveLeft (prev agent)) (prev obj))))) heavyRock)) (length (filter (--> obj (& left (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveLeft (prev agent)) (prev obj))))) lightRock))) 1)
+      (let ((= heavyRock (updateObj heavyRock (--> obj (prev obj)) (--> obj (== (.. obj id) (.. (last (vcat (filter (--> obj (& left (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveLeft (prev agent)) (prev obj))))) lightRock) (filter (--> obj (& left (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveLeft (prev agent)) (prev obj))))) heavyRock))) id)))))
+            (= lightRock (updateObj lightRock (--> obj (prev obj)) (--> obj (== (.. obj id) (.. (last (vcat (filter (--> obj (& left (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveLeft (prev agent)) (prev obj))))) lightRock) (filter (--> obj (& left (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveLeft (prev agent)) (prev obj))))) heavyRock))) id))))))))
+
+  (on (> (+ (length (filter (--> obj (& right (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveRight (prev agent)) (prev obj))))) heavyRock)) (length (filter (--> obj (& right (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveRight (prev agent)) (prev obj))))) lightRock))) 1)
+	  (let ((= heavyRock (updateObj heavyRock (--> obj (prev obj)) (--> obj (== (.. obj id) (.. (last (vcat (filter (--> obj (& right (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveRight (prev agent)) (prev obj))))) lightRock) (filter (--> obj (& right (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveRight (prev agent)) (prev obj))))) heavyRock))) id)))))
+    	    (= lightRock (updateObj lightRock (--> obj (prev obj)) (--> obj (== (.. obj id) (.. (last (vcat (filter (--> obj (& right (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveRight (prev agent)) (prev obj))))) lightRock) (filter (--> obj (& right (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveRight (prev agent)) (prev obj))))) heavyRock))) id))))))))
+
+  (on (> (+ (length (filter (--> obj (& up (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveUp (prev agent)) (prev obj))))) heavyRock)) (length (filter (--> obj (& up (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveUp (prev agent)) (prev obj))))) lightRock))) 1)
+	  (let ((= heavyRock (updateObj heavyRock (--> obj (prev obj)) (--> obj (== (.. obj id) (.. (last (vcat (filter (--> obj (& up (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveUp (prev agent)) (prev obj))))) lightRock) (filter (--> obj (& up (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveUp (prev agent)) (prev obj))))) heavyRock))) id)))))
+    	    (= lightRock (updateObj lightRock (--> obj (prev obj)) (--> obj (== (.. obj id) (.. (last (vcat (filter (--> obj (& up (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveUp (prev agent)) (prev obj))))) lightRock) (filter (--> obj (& up (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveUp (prev agent)) (prev obj))))) heavyRock))) id))))))))
+
+  (on (> (+ (length (filter (--> obj (& down (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveDown (prev agent)) (prev obj))))) heavyRock)) (length (filter (--> obj (& down (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveDown (prev agent)) (prev obj))))) lightRock))) 1)
+	  (let ((= heavyRock (updateObj heavyRock (--> obj (prev obj)) (--> obj (== (.. obj id) (.. (last (vcat (filter (--> obj (& down (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (intersects (prev obj) sand)) (intersects (moveDown (prev agent)) (prev obj))))) lightRock) (filter (--> obj (& down (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveDown (prev agent)) (prev obj))))) heavyRock))) id)))))
+  		    (= lightRock (updateObj lightRock (--> obj (prev obj)) (--> obj (== (.. obj id) (.. (last (vcat (filter (--> obj (& down (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (intersects (prev obj) sand)) (intersects (moveDown (prev agent)) (prev obj))))) lightRock) (filter (--> obj (& down (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveDown (prev agent)) (prev obj))))) heavyRock))) id))))))))
+
+  (on (& (<= (.. (.. agent origin) y) 15) (! (isWithinBounds agent))) (= agent (prev agent)))
+
+  (on (& (! (clicked agent)) (& (& (! (clicked heavyRock)) (! (clicked lightRock))) (| false (clicked sand)))) (= heavyRock (addObj heavyRock (HeavyRock (Position (.. click x) (.. click y))))))
+)`);
+}
+
+function river2Click() {
+  myCodeMirror.setValue(`(program
+  (= GRID_SIZE 16)
+
+  (object Sand (vcat (map (--> pos (Cell pos "sandybrown")) (vcat (rect (Position 0 0) (Position 2 15)) (rect (Position 13 0) (Position 15 15))))))
+  (object SlowWater (map (--> pos (Cell pos "blue")) (vcat (rect (Position 3 0) (Position 5 15)) (rect (Position 10 0) (Position 12 15))) ))
+  (object FastWater (map (--> pos (Cell pos "darkblue")) (rect (Position 6 0) (Position 9 15))))
+  (object LightRock (Cell 0 0 "gray"))
+  (object HeavyRock (Cell 0 0 "black"))
+  (object Agent (Cell 0 0 "maroon"))
+
+  (: sand Sand)
+  (= sand (initnext (Sand (Position 0 0)) sand))
+
+  (: slowWater SlowWater)
+  (= slowWater (initnext (SlowWater (Position 0 0)) slowWater))
+
+  (: fastWater FastWater)
+  (= fastWater (initnext (FastWater (Position 0 0)) fastWater))
+
+  (: lightRock (List LightRock))
+  (= lightRock (initnext 
+                 (map (--> pos (LightRock pos)) 
+                   (list (Position 1 12) 
+                         (Position 1 10) 
+                         (Position 1 14) 
+                         (Position 2 13) 
+                         (Position 2 11)))
+                 lightRock))
+
+  (: heavyRock (List HeavyRock))
+  (= heavyRock (initnext 
+                 (map (--> pos (HeavyRock pos))
+                   (list (Position 1 8)
+                         (Position 1 6)
+                         (Position 2 5)
+                         (Position 2 9)
+                         (Position 2 7)
+                         (Position 14 8)
+                         (Position 14 6)
+                         (Position 13 5)
+                         (Position 13 9)
+                         (Position 13 7)
+                   )) 
+                 heavyRock))
+
+  (: agent Agent)
+  (= agent (initnext (Agent (Position 0 0)) (prev agent)))
+  
+  (: time Int)
+  (= time (initnext 0 (+ 1 (prev time))))
+
+  (on (& (| (| (intersects agent heavyRock) (intersects agent lightRock)) (intersects agent sand)) left) (= agent (moveLeft agent)))
+  (on (& (| (| (intersects agent heavyRock) (intersects agent lightRock)) (intersects agent sand)) right) (= agent (moveRight agent)))
+  (on (& (| (| (intersects agent heavyRock) (intersects agent lightRock)) (intersects agent sand)) up) (= agent (moveUp agent)))
+  (on (& (| (| (intersects agent heavyRock) (intersects agent lightRock)) (intersects agent sand)) down) (= agent (moveDown agent)))
+
+  (on (& (intersects (prev agent) slowWater) (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) ) (= agent (moveDown (prev agent))))
+  (on (& (== (% (prev time) 1) 0) (& (& (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) (intersects (prev agent) slowWater)) left)) (= agent (moveDown (moveLeft (prev agent)))))
+  (on (& (== (% (prev time) 1) 0) (& (& (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) (intersects (prev agent) slowWater)) right)) (= agent (moveDown (moveRight (prev agent)))))
+  (on (& (== (% (prev time) 1) 0) (& (& (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) (intersects (prev agent) slowWater)) up)) (= agent (moveDown (moveUp (prev agent)))))
+  (on (& (== (% (prev time) 1) 0) (& (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) (& (intersects (prev agent) slowWater) down))) (= agent (moveDown (moveDown (prev agent)))))
+
+  (on (& (intersects (prev agent) fastWater) (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock)))) (= agent (moveDown (moveDown (prev agent)))))
+  (on (& (== (% (prev time) 1) 0) (& (& (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) (intersects (prev agent) fastWater)) left)) (= agent (moveDown (moveDown (moveLeft (prev agent))))))
+  (on (& (== (% (prev time) 1) 0) (& (& (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) (intersects (prev agent) fastWater)) right)) (= agent (moveDown (moveDown (moveRight (prev agent))))))
+  (on (& (== (% (prev time) 1) 0) (& (& (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) (intersects (prev agent) fastWater)) up)) (= agent (moveDown (moveDown (moveUp (prev agent))))))
+  (on (& (== (% (prev time) 1) 0) (& (& (! (intersects (prev agent) heavyRock)) (! (intersects (prev agent) lightRock))) (& (intersects (prev agent) fastWater) down))) (= agent (moveDown (moveDown (moveDown (prev agent))))))
+
+  
+  (on true (= lightRock (updateObj lightRock (--> obj (moveLeft (prev obj))) (--> obj (& left (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveLeft (prev agent)) (prev obj))))))))            
+  (on true (= lightRock (updateObj lightRock (--> obj (moveRight (prev obj))) (--> obj (& right (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveRight (prev agent)) (prev obj))))))))            
+  (on true (= lightRock (updateObj lightRock (--> obj (moveUp (prev obj))) (--> obj (& up (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveUp (prev agent)) (prev obj))))))))            
+  (on true (= lightRock (updateObj lightRock (--> obj (moveDown (prev obj))) (--> obj (& down (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveDown (prev agent)) (prev obj))))))))            
+  (on true (= lightRock (updateObj lightRock (--> obj (moveDown (prev obj))) (--> obj (& (! (intersects (prev obj) (prev heavyRock))) (intersects (prev obj) fastWater))))))
+
+  (on true (= heavyRock (updateObj heavyRock (--> obj (moveLeft (prev obj))) (--> obj (& left (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveLeft (prev agent)) (prev obj))))))))            
+  (on true (= heavyRock (updateObj heavyRock (--> obj (moveRight (prev obj))) (--> obj (& right (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveRight (prev agent)) (prev obj))))))))            
+  (on true (= heavyRock (updateObj heavyRock (--> obj (moveUp (prev obj))) (--> obj (& up (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveUp (prev agent)) (prev obj))))))))            
+  (on true (= heavyRock (updateObj heavyRock (--> obj (moveDown (prev obj))) (--> obj (& down (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveDown (prev agent)) (prev obj))))))))            
+
+  (on (> (+ (length (filter (--> obj (& left (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveLeft (prev agent)) (prev obj))))) heavyRock)) (length (filter (--> obj (& left (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveLeft (prev agent)) (prev obj))))) lightRock))) 1)
+      (let ((= heavyRock (updateObj heavyRock (--> obj (prev obj)) (--> obj (== (.. obj id) (.. (last (vcat (filter (--> obj (& left (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveLeft (prev agent)) (prev obj))))) lightRock) (filter (--> obj (& left (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveLeft (prev agent)) (prev obj))))) heavyRock))) id)))))
+            (= lightRock (updateObj lightRock (--> obj (prev obj)) (--> obj (== (.. obj id) (.. (last (vcat (filter (--> obj (& left (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveLeft (prev agent)) (prev obj))))) lightRock) (filter (--> obj (& left (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveLeft (prev agent)) (prev obj))))) heavyRock))) id))))))))
+
+  (on (> (+ (length (filter (--> obj (& right (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveRight (prev agent)) (prev obj))))) heavyRock)) (length (filter (--> obj (& right (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveRight (prev agent)) (prev obj))))) lightRock))) 1)
+	  (let ((= heavyRock (updateObj heavyRock (--> obj (prev obj)) (--> obj (== (.. obj id) (.. (last (vcat (filter (--> obj (& right (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveRight (prev agent)) (prev obj))))) lightRock) (filter (--> obj (& right (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveRight (prev agent)) (prev obj))))) heavyRock))) id)))))
+    	    (= lightRock (updateObj lightRock (--> obj (prev obj)) (--> obj (== (.. obj id) (.. (last (vcat (filter (--> obj (& right (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveRight (prev agent)) (prev obj))))) lightRock) (filter (--> obj (& right (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveRight (prev agent)) (prev obj))))) heavyRock))) id))))))))
+
+  (on (> (+ (length (filter (--> obj (& up (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveUp (prev agent)) (prev obj))))) heavyRock)) (length (filter (--> obj (& up (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveUp (prev agent)) (prev obj))))) lightRock))) 1)
+	  (let ((= heavyRock (updateObj heavyRock (--> obj (prev obj)) (--> obj (== (.. obj id) (.. (last (vcat (filter (--> obj (& up (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveUp (prev agent)) (prev obj))))) lightRock) (filter (--> obj (& up (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveUp (prev agent)) (prev obj))))) heavyRock))) id)))))
+    	    (= lightRock (updateObj lightRock (--> obj (prev obj)) (--> obj (== (.. obj id) (.. (last (vcat (filter (--> obj (& up (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveUp (prev agent)) (prev obj))))) lightRock) (filter (--> obj (& up (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveUp (prev agent)) (prev obj))))) heavyRock))) id))))))))
+
+  (on (> (+ (length (filter (--> obj (& down (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveDown (prev agent)) (prev obj))))) heavyRock)) (length (filter (--> obj (& down (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (| (intersects (prev obj) (prev heavyRock)) (intersects (prev obj) sand))) (intersects (moveDown (prev agent)) (prev obj))))) lightRock))) 1)
+	  (let ((= heavyRock (updateObj heavyRock (--> obj (prev obj)) (--> obj (== (.. obj id) (.. (last (vcat (filter (--> obj (& down (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (intersects (prev obj) sand)) (intersects (moveDown (prev agent)) (prev obj))))) lightRock) (filter (--> obj (& down (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveDown (prev agent)) (prev obj))))) heavyRock))) id)))))
+  		    (= lightRock (updateObj lightRock (--> obj (prev obj)) (--> obj (== (.. obj id) (.. (last (vcat (filter (--> obj (& down (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev lightRock))) (intersects (prev obj) sand)) (intersects (moveDown (prev agent)) (prev obj))))) lightRock) (filter (--> obj (& down (& (| (intersects (prev obj) (filter (--> obj2 (!= (.. obj id) (.. obj2 id))) (prev heavyRock))) (| (intersects (prev obj) (prev lightRock)) (intersects (prev obj) sand))) (intersects (moveDown (prev agent)) (prev obj))))) heavyRock))) id))))))))
+
+  (on (& (<= (.. (.. agent origin) y) 15) (! (isWithinBounds agent))) (= agent (prev agent)))
+
+  (on (& (! (clicked agent)) (& (& (! (clicked heavyRock)) (! (clicked lightRock))) (| false (clicked sand)))) (= heavyRock (addObj heavyRock (HeavyRock (Position (.. click x) (.. click y))))))
+)`);
+}
+
     
       function toggleClick() {
         div = document.getElementById("button-div")
@@ -3953,7 +4382,7 @@ function removeObj(args, state=null) {
   if (args.length == 2) {
     var [arr, x] = JSON.parse(JSON.stringify(args)); 
     if (x.id != undefined) { // x is an object
-      for (elt of arr) {
+      for (let elt of arr) {
         if (elt.id == x.id) {
           elt.alive = false;
         }
@@ -3984,7 +4413,12 @@ function filter_fallback(args, state=null) {
 
 function adjPositions(args, state=null) {
   var position = args[0];
-  return [Position(position.x, position.y + 1), Position(position.x, position.y - 1), Position(position.x + 1, position.y), Position(position.x - 1, position.y)].filter(x => isWithinBounds([x], state));
+  return [Position([position.x, position.y + 1]), Position([position.x, position.y - 1]), Position([position.x + 1, position.y]), Position([position.x - 1, position.y])].filter(x => isWithinBounds([x], state));
+}
+
+function adjPositionsDiag(args, state=null) {
+  var position = args[0];
+  return [Position([position.x, position.y + 1]), Position([position.x, position.y - 1]), Position([position.x + 1, position.y]), Position([position.x - 1, position.y]), Position([position.x - 1, position.y - 1]), Position([position.x - 1, position.y + 1]), Position([position.x + 1, position.y - 1]), Position([position.x + 1, position.y + 1])].filter(x => isWithinBounds([x], state));
 }
 
 function isFree(args, state=null) {
@@ -4159,13 +4593,26 @@ function adj(args, state=null) {
     // console.log("answer 3");
     var obj1_adjacentObjs = unfold(obj1.map(x => adjacentObjs([x, unitSize], state)));
     // console.log(intersect(obj1_adjacentObjs.map(x => x.id), obj2.map(x => x.id)).length != 0)
-    return intersect(obj1_adjacentObjs.map(x => x.id), obj2.map(x => x.id)).length != 0;
+    return intersect([obj1_adjacentObjs.map(x => x.id), obj2.map(x => x.id)]).length != 0;
   }
 }
 
 // helper
-function intersect(arr1, arr2) {
-  return arr1.filter(elt => arr2.includes(elt));
+function intersect(args) {
+  var [arr1, arr2] = args;
+  let new_list = [];
+  for (let elt of arr1) {
+    if (typeof(elt) == "object") {
+      if (arr2.map(x => JSON.stringify(x)).includes(JSON.stringify(elt))) {
+        new_list.push(elt);
+      }
+    } else {
+      if (arr2.includes(elt)) {
+        new_list.push(elt);
+      }
+    }
+  }
+  return new_list;
 }
 
 // function adjCorner(args, state=null) {
@@ -4498,8 +4945,8 @@ function allPositions(args, state=null) {
 function unfold(args, state=null) {
   var A = args[0];
   var V = [];
-  for (x of A) {
-    for (elt of x) {
+  for (let x of A) {
+    for (let elt of x) {
       V.push(elt);
     }
   }
@@ -4686,6 +5133,7 @@ var prim_to_func = {"+" : function(x, y) {return x + y;},
                    ">" : function(x, y) {return x > y;},
                    "<" : function(x, y) {return x < y;},
                    "<=" : function(x, y) {return x <= y;},
+                   ">=" : function(x, y) {return x >= y;}, 
                    "==" : function(x, y) {return x == y;},
                    "%" : function(x, y) {return x % y;},
                    "!=" : function(x, y) {return x != y},  
@@ -4735,6 +5183,7 @@ var lib_to_func = {"ObjectType" : ObjectType,
                    "updateObj" : updateObj,
                    "filter_fallback" : filter_fallback,
                    "adjPositions" : adjPositions,
+                   "adjPositionsDiag" : adjPositionsDiag,
                    "isFree" : isFree,
                    "rect" : rect,
                    "unitVector" : unitVector,
@@ -4776,7 +5225,7 @@ function libapl(f, args, env) {
     return [lib_to_func[f]([interpret("click", env)[0], ...args], env.state), env]
   } else {
     var has_function_arg = false; 
-    for (arg of args) {
+    for (let arg of args) {
       // console.log("arg");
       // console.log(JSON.stringify(arg));
       if (Array.isArray(arg) && (arg.length == 2) && (isaexpr(arg[0]) || typeof(arg[0]) == "string") && (isaexpr(arg[1]) || typeof(arg[1]) == "string")) {
@@ -4992,7 +5441,7 @@ function interpret_list(args, env) {
   // console.log("INTERPRET_LIST");
   // console.log(args);
   var new_list = [];
-  for (arg of args) {
+  for (let arg of args) {
     var [new_arg, env] = interpret(arg, env);
     new_list.push(new_arg);
   }
@@ -5007,7 +5456,7 @@ function interpret_lib(f, args, env) {
   // console.log(args);
   // console.log(JSON.stringify(env));
   var new_args = [];
-  for (arg of args) {
+  for (let arg of args) {
     [new_arg, env] = interpret(arg, env);
     new_args.push(new_arg);
   }
@@ -5039,7 +5488,7 @@ function interpret_let(args, env) {
   // console.log(JSON.stringify(env));
   var env2 = JSON.parse(JSON.stringify(env));
   if (args.length > 0 ) {
-    for (arg of args.slice(0, args.length - 1)) {
+    for (let arg of args.slice(0, args.length - 1)) {
       var [v2, env2] = interpret(arg, env2);
     }
 
@@ -5207,7 +5656,7 @@ function interpret_updateObj(args, env) {
   // console.log("interpret_updateObj");
   // console.log(args);
   // console.log(env);
-  var env2 = JSON.parse(JSON.stringify(env));
+  var env2 = env //JSON.parse(JSON.stringify(env));
   var numFunctionArgs = args.map(arg => Array.isArray(arg) && (arg.length == 2) && (isaexpr(arg[0]) || typeof(arg[0]) == "string") && (isaexpr(arg[1]) || typeof(arg[1]) == "string")).filter(x => x == true).length;
   
   // console.log("numFunctionArgs");
@@ -5277,8 +5726,8 @@ function interpret_updateObj(args, env) {
     // # update render
     var object_type = env.state.object_types[obj.type];
     
-    var old_current_var_values = JSON.parse(JSON.stringify(env.current_var_values));
-    var env3 = JSON.parse(JSON.stringify(env2));
+    var old_current_var_values = JSON.parse(JSON.stringify(env2.current_var_values));
+    var env3 = env2; // JSON.parse(JSON.stringify(env2));
     var fields = object_type.fields;
     for (let i = 0; i < fields.length; i++) {
       var field_name = fields[i].args[0];
@@ -5329,7 +5778,7 @@ function interpret_js_map(args, env) {
   var [list, env] = interpret(args[1], env);
   // console.log("orig list woo");
   // console.log(list);
-  for (arg of list) { 
+  for (let arg of list) { 
     var [new_arg, env] = interpret({"head" : "call", "args" : [map_func, arg]}, env)
     new_list.push(new_arg);
   }
@@ -5366,7 +5815,7 @@ function interpret_js_count(args, env) {
   var new_list = [];
   var filter_func = args[0];
   var [list, env] = interpret(args[1], env);
-  for (arg of list) {
+  for (let arg of list) {
     var [v, env] = interpret({"head" : "call", "args" : [filter_func, arg]}, env)
     if (v == true) { 
       new_list.push(interpret(arg, env)[0])
@@ -5391,7 +5840,7 @@ function interpret_program(aex, env) {
     throw new Error("Must be a program aex");
   }
 
-  for (line of aex.args) {
+  for (let line of aex.args) {
     // console.log("YOOOOOOOOO")
     // console.log(line.head)
     // console.log(env);
@@ -5433,7 +5882,7 @@ function start(aex) {
 
   var reordered_lines = grid_params_and_object_type_lines.concat(initnext_lines).concat(on_clause_lines).concat(lifted_lines)
 
-  for (line of lifted_lines) {
+  for (let line of lifted_lines) {
     // console.log("HUHHHHHHHHHHHH")
     // console.log(line)
     var var_name = line.args[0] 
@@ -5452,7 +5901,7 @@ function start(aex) {
 
   // initialize lifted variables
   // env = update(env, :lifted, empty_env()) 
-  for (line of lifted_lines) {
+  for (let line of lifted_lines) {
     var var_name = line.args[0]
     env.lifted[var_name] = line.args[1] 
     if (["GRID_SIZE", "background"].includes(var_name)) {
@@ -5473,7 +5922,7 @@ function step(aex, env, user_events=null) {
   // console.log("STEP");
   // update env with user event 
   if (user_events != null) {
-    for (user_event in user_events) {
+    for (let user_event in user_events) {
       if (user_events[user_event] != null) {
         env[user_event] = user_events[user_event];
       }
@@ -5490,7 +5939,7 @@ function step(aex, env, user_events=null) {
 
 function update_state(env_) {
   // reset user events 
-  for (user_event of ["left", "right", "up", "down"]) {
+  for (let user_event of ["left", "right", "up", "down"]) {
     env_[user_event] = false;
   }
   env_["click"] = null;
