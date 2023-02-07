@@ -214,7 +214,7 @@
             <button id="plug-button" class="control-button example-button">WATER PLUG</button>
             <button id="ice-button" class="control-button example-button">ICE</button>
             <button id="tetris-button" style="display: none" class="control-button">TETRIS</button>
-            <button id="hatch-button" class="control-button example-button">HATCH</button>
+            <button id="hatch-button" style="display: none" class="control-button">HATCH</button>
             <button id="snake-button" style="display: none" class="control-button">SNAKE</button>
             <button id="magnets-button-2" style="display: none" class="control-button">MAGNETS II</button>
             <button id="magnets-button-3" style="display: none" class="control-button">MAGNETS III</button>
@@ -280,7 +280,7 @@
               <div style="display: flex; margin-top: 10px;">
                   <button id="play-button" class="control-button" type="submit" id="run" style="margin-right: 10px;">▶</button>
                   <button id="restart-button" class="control-button" type="submit" style="font-size: 15px; font-weight: bold;">↻</button>
-                  <button id="slider-button" class="control-button" type="submit" style="font-size: 15px; font-weight: bold;"><input id="slider" style="width: 90px;" id="pi_input" type="range" min="50" max="300" step="50" /> </button>
+                  <button id="slider-button" class="control-button" type="submit" style="font-size: 15px; font-weight: bold;"><input id="slider" style="width: 90px;" id="pi_input" type="range" min="50" max="300" step="50" value="50"/> </button>
                 
                   
                   <button id="save-button" style="display: none" class="control-button" type="submit" style="font-size: 15px; font-weight: bold;"><i class="fa fa-floppy-o" aria-hidden="true"></i></button>
@@ -717,7 +717,7 @@
             })
           } 
         
-          var labeled_names = ['PARTICLES', 'ANTS', 'LIGHTS', 'MAGNETS', 'WATER PLUG', 'ICE', 'HATCH', 'DISEASE', 'SPACE INVADERS', 'SOKOBAN', 'GROW', 'MARIO', 'SAND', 'GRAVITY', 'GRAVITY II', 'GRAVITY III', 'GRAVITY IV', 'EGG', 'WIND', 'PAINT', 'CHASE', 'COINS', 'COUNT I', 'COUNT II', 'COUNT III', 'COUNT IV', 'COUNT V', 'ICE RINK', 'DOUBLE COUNT I', 'DOUBLE COUNT II', 'JUMP', 'BULLETS', 'LEVELS', 'FORAGING', 'SPIDER', 'RIVER I', 'RIVER II'];
+          var labeled_names = ['PARTICLES', 'ANTS', 'LIGHTS', 'MAGNETS', 'WATER PLUG', 'ICE', 'DISEASE', 'SPACE INVADERS', 'SOKOBAN', 'GROW', 'MARIO', 'SAND', 'GRAVITY', 'GRAVITY II', 'GRAVITY III', 'GRAVITY IV', 'EGG', 'WIND', 'PAINT', 'CHASE', 'COINS', 'COUNT I', 'COUNT II', 'COUNT III', 'COUNT IV', 'COUNT V', 'ICE RINK', 'DOUBLE COUNT I', 'DOUBLE COUNT II', 'JUMP', 'BULLETS', 'LEVELS', 'FORAGING', 'SPIDER', 'RIVER I', 'RIVER II'];
           var numbered_names = [...Array(document.getElementsByClassName("example-button").length).keys()].map(x => (x + 1).toString());
           index = 0;
           Array.from(document.getElementsByClassName("example-button")).forEach(function (button) {
