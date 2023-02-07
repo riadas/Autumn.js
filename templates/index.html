@@ -111,7 +111,7 @@
       .grid {
         display: grid;
         grid-gap: 0;
-        border: 1px solid black;
+        border: 0.5px solid black;
         width: fit-content;
       }
       .cell {
@@ -123,7 +123,7 @@
         font-family: Arial;
         font-weight: bold;
         background-color: transparent;
-        border: 1px solid black;
+        border: 0.5px solid black;
         margin: 0;
         color: transparent;
         padding: 0px;
@@ -247,8 +247,8 @@
             <button id="bullets-button" class="control-button example-button">BULLETS</button>
             <button id="levels-button" class="control-button example-button">LEVELS</button>
             <button id="random-button" style="display: none" style="background-color: orange !important" class="control-button">RANDOM SCENE</button>
-            <button id="random-button-2" style="background-color: orange !important" class="control-button">RANDOM PROGRAM</button>
-            <button id="random-button-3" style="background-color: orange !important" class="control-button">RANDOM GROUPED PROGRAM</button>
+            <button id="random-button-2" style="display: none; background-color: orange !important" class="control-button">RANDOM PROGRAM</button>
+            <button id="random-button-3" style="display: none; background-color: orange !important" class="control-button">RANDOM GROUPED PROGRAM</button>
             <button id="toggle-labels-button" class="control-button">TOGGLE LABELS</button>
             <button id="synthesize-button" style="display: none" style="background-color: #69e8e8 !important;" class="control-button example-button disabled">SYNTHESIZE</button>
           </div>
@@ -262,8 +262,8 @@
               <div style="display: flex; margin-top: 10px;">
                   <button id="play-button" class="control-button" type="submit" id="run" style="margin-right: 10px;">▶</button>
                   <button id="restart-button" class="control-button" type="submit" style="font-size: 15px; font-weight: bold;">↻</button>
-                  <button id="save-button" class="control-button" type="submit" style="font-size: 15px; font-weight: bold;"><i class="fa fa-floppy-o" aria-hidden="true"></i></button>
-                  <button id="history-button" class="control-button" type="submit" style="font-size: 15px; font-weight: bold;"><i class="fa fa-history" aria-hidden="true"></i></button>
+                  <button id="save-button" style="display: none" class="control-button" type="submit" style="font-size: 15px; font-weight: bold;"><i class="fa fa-floppy-o" aria-hidden="true"></i></button>
+                  <button id="history-button" style="display: none" class="control-button" type="submit" style="font-size: 15px; font-weight: bold;"><i class="fa fa-history" aria-hidden="true"></i></button>
                   <button id="toggle-button" class="control-button">TOGGLE VIEW</button>
               </div>
             </div>
@@ -284,7 +284,7 @@
           // global frontend variables
           var not_run_yet = true;
           var intervalID = -1;
-          var timestep = 300; // 1200000; // 300 // 5000
+          var timestep = 50; // 1200000; // 300 // 5000 // 50
           var historytimestep = 300;
           var compiled = false;
           var client_id = getRandomInt(1, 10000);
@@ -297,6 +297,10 @@
           var history_response = '{}';
           var history_index = -1;
           var paused = false;
+
+          var aex = null;
+          var env = null;
+          var curr_program_str = "";
       
           // attach event listeners to buttons
           document.getElementById("toggle-labels-button").addEventListener("click", toggleLabelsClick);
@@ -636,17 +640,22 @@
           }
     
           function updateCellStyles(xml_response) { 
-            console.log("updateCellStyles")
-            console.log(xml_response);
+            // console.log("updateCellStyles")
+            // console.log(xml_response);
             xml_json = JSON.parse(xml_response);
             Array.from(document.getElementsByClassName("cell")).forEach(function (cell) { 
               cell.style.background = xml_json[0] == "#ffffff00" ? xml_json[0] : "linear-gradient(45deg, "+colorToRGBA(xml_json[0], 0.6)+", "+colorToRGBA(xml_json[0], 0.6)+")"
             })
-            xml_json.slice(1, xml_json.length).forEach(function (particle) {
+            xml_json[1].forEach(function (particle) {
+              // console.log("particle");
+              // console.log(particle);
               if ((particle[1] < grid_size[1] && particle[1] >= 0) && (particle[0] < grid_size[0] && particle[0] >= 0)) {
                 cell = document.getElementById((particle[1]*grid_size[0] + particle[0]).toString())
+                // console.log("cell");
+                // console.log(cell);
                 cell.style.background = cell.style.background != "linear-gradient(45deg, "+colorToRGBA(xml_json[0], 0.6)+", "+colorToRGBA(xml_json[0], 0.6)+")" ? 
                 ["linear-gradient(45deg, "+colorToRGBA(particle[2], 0.6)+", "+colorToRGBA(particle[2], 0.6)+")", cell.style.background].join(", ") : "linear-gradient(45deg, "+colorToRGBA(particle[2], 0.6)+", "+colorToRGBA(particle[2], 0.6)+")";
+                // console.log(cell.style.background);
               }
             })
           } 
@@ -655,12 +664,12 @@
           var numbered_names = [...Array(document.getElementsByClassName("example-button").length).keys()].map(x => (x + 1).toString());
           index = 0;
           Array.from(document.getElementsByClassName("example-button")).forEach(function (button) {
-            //console.log(cell.id)
+            //// console.log(cell.id)
             button.style.width = button.offsetWidth;
             button.style.color = "black";
-            console.log("yo");
-            console.log(button.style.width);
-            console.log(button.innerText);
+            // console.log("yo");
+            // console.log(button.style.width);
+            // console.log(button.innerText);
             button.innerText = numbered_names[index]; 
             index++;
           });
@@ -668,12 +677,12 @@
           function toggleLabelsClick() {
             current_names = []
             Array.from(document.getElementsByClassName("example-button")).forEach(function (button) {
-              //console.log(cell.id)
+              //// console.log(cell.id)
               current_names.push(button.innerText);
             })
     
-            console.log("current_names");
-            console.log(current_names);
+            // console.log("current_names");
+            // console.log(current_names);
     
             if (current_names[0] == "1") {
               Array.from(document.getElementsByClassName("example-button")).forEach(function (button) {
@@ -684,11 +693,11 @@
               labeled_names = current_names;
               index = 0;
               Array.from(document.getElementsByClassName("example-button")).forEach(function (button) {
-                //console.log(cell.id)
+                //// console.log(cell.id)
                 button.style.width = button.offsetWidth;
-                console.log("yo");
-                console.log(button.style.width);
-                console.log(button.innerText);
+                // console.log("yo");
+                // console.log(button.style.width);
+                // console.log(button.innerText);
                 button.innerText = numbered_names[index]; 
                 index++;
               });
@@ -696,62 +705,60 @@
             }
     
           }
-    
+          
           function compileClick() {
             history_mode = false;  
             saved = false;
-    
-            console.log("compileClick")
-            var xhr = new XMLHttpRequest(); 
-            xhr.open("POST", host + '/compileautumn', true);
-    
-            //Send the proper header information along with the request
-            xhr.onreadystatechange = function () { // Call a function when the state changes.
-              if (this.readyState === 4 && this.status === 200) {
-                content = JSON.parse(xhr.response)[0];
-                console.log("content: "+content);
-    
-                if (content == "") {
-                  compiled = false;
-                  not_run_yet = true;
-                  myCodeMirror.setOption("readOnly", false);
-                  // particlesClick();
-                  // reset grid
-                  grid_size = [16, 16]
-                  Array.from(document.getElementsByClassName("grid")).forEach(function (grid) {
-                    grid.innerHTML = "";
-                    grid.style = "grid-template-columns: repeat("+grid_size[0]+", 25px); grid-template-rows: repeat("+grid_size[1]+", 25px);"
-                    for (i=0; i < grid_size[0]*grid_size[1]; i++) {
-                      const button = document.createElement("button")
-                      button.classList.add("cell");
-                      button.id = i.toString();
-                      button.padding = "12px"
-                      button.width = "0px"
-                      button.height = "0px"
-                      button.onclick = function() { console.log(button.id); click(parseInt(button.id));};
-                      grid.appendChild(button);
-                    }
-                  });
-                  Array.from(document.getElementsByClassName("cell")).forEach(function (cell) { cell.style.background = ""})
-    
-                } else { 
-                  compiled = true;
-                  myCodeMirror.setOption("readOnly", "nocursor");
-                  myCodeMirror.setValue(content);
+
+            x = test_ants_actual();
+            console.log(x);
+            // console.log("compileClick")
+            // // console.log("content: "+content);
+            if (compiled) {
+              compiled = false;
+              not_run_yet = true;
+
+              aex = null;
+              env = null;
+
+              myCodeMirror.setOption("readOnly", false);
+              // particlesClick();
+              // reset grid
+              grid_size = [16, 16]
+              Array.from(document.getElementsByClassName("grid")).forEach(function (grid) {
+                grid.innerHTML = "";
+                grid.style = "grid-template-columns: repeat("+grid_size[0]+", 25px); grid-template-rows: repeat("+grid_size[1]+", 25px);"
+                for (i=0; i < grid_size[0]*grid_size[1]; i++) {
+                  const button = document.createElement("button")
+                  button.classList.add("cell");
+                  button.id = i.toString();
+                  button.padding = "12px"
+                  button.width = "0px"
+                  button.height = "0px"
+                  button.onclick = function() { console.log(button.id); click(parseInt(button.id));};
+                  grid.appendChild(button);
                 }
-                updateButtonStyles(); 
-              }
-            };
-            if (!compiled) {
-              console.log("hello");
-              document.getElementById("compile-button").innerHTML = "COMPILING...";
+              });
+              Array.from(document.getElementsByClassName("cell")).forEach(function (cell) { cell.style.background = ""})
+
+            } else {
+              curr_program_str = myCodeMirror.getValue();
+              aex = parseau(curr_program_str);
+
+              // console.log("curr_program_str");
+              // console.log(curr_program_str);
+
+              // console.log("aex");
+              // console.log(aex);
+              
+              compiled = true;
+              myCodeMirror.setOption("readOnly", "nocursor");
+              // myCodeMirror.setValue(content);
             }
-            console.log("client_id: "+client_id);
-            console.log("autumn-string: "+myCodeMirror.getValue());
-            formData = new FormData();
-            formData.append("autumnstring", compiled ? "" : myCodeMirror.getValue());
-            formData.append("clientid", client_id);
-            xhr.send(formData);
+            updateButtonStyles();
+
+            // console.log("client_id: "+client_id);
+            // console.log("autumn-string: "+myCodeMirror.getValue());
           }
     
           function getRandomInt(min, max) {
@@ -761,7 +768,7 @@
           }
     
           function playOrPauseClick() {
-            console.log("playOrPauseClick");
+            // console.log("playOrPauseClick");
             if (!history_mode) {
               if (intervalID !== -1) { // pause
                 paused = true;
@@ -770,60 +777,61 @@
                 updateButtonStyles();
               } else { // play
                 if (not_run_yet) {
-                  var xhr = new XMLHttpRequest();
-                  xhr.open("GET", host + '/startautumn?clientid='+client_id, true);
           
-                  //Send the proper header information along with the request
-                  xhr.setRequestHeader("Content-Type", "application/json");
-          
-                  xhr.onreadystatechange = function () { // Call a function when the state changes.
-                    if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-                        // Request finished. Do processing here.
-                        console.log("success!");
-                        console.log("xhr.response: "+JSON.stringify(xhr.response));
-                        const xhr_json = JSON.parse(xhr.response)
-                        // update grid
-                        grid_size = xhr_json[0]
-                        console.log("grid_size")
-                        console.log(grid_size)
-                        console.log(typeof(grid_size))
-    
-                        cell_size = 25;
-                        if (Math.max(grid_size[0], grid_size[1]) > 18) {
-                          cell_size = Math.round(cell_size * 18/Math.max(grid_size[0], grid_size[1]))
-                        }
-    
-                        Array.from(document.getElementsByClassName("grid")).forEach(function (grid) {
-                          grid.innerHTML = "";
-                          grid.style = "grid-template-columns: repeat("+grid_size[0]+", "+ cell_size +"px); grid-template-rows: repeat("+grid_size[1]+", " + cell_size + "px);"
-                          for (i=0; i < grid_size[0]*grid_size[1]; i++) {
-                            const button = document.createElement("button")
-                            button.classList.add("cell");
-                            button.id = i.toString();
-                            button.width = "0px"
-                            button.height = "0px"
-                            button.padding = Math.round(Math.max(cell_size/2 - 1, 1)).toString() + "px"
-                            button.onclick = function() { console.log(button.id); click(parseInt(button.id));};
-                            grid.appendChild(button);
-                          }
-                        });
-                        paused = false;
-                        if (intervalID != -1) {
-                          clearInterval(intervalID);
-                        }
-                        updateCellStyles(JSON.stringify(xhr_json.slice(1,xhr_json.length)));
-                        intervalID = setInterval(step, timestep);
-                        updateButtonStyles();
-                        console.log("here?");
+                  // console.log("aex");
+                  // console.log(aex);
+                  // console.log(curr_program_str);
+                  [aex, env] = start(aex);
+
+                  // Request finished. Do processing here.
+                  // console.log("success!");
+                  // update grid
+                  grid_size = env.current_var_values.GRID_SIZE;
+                  if (!Array.isArray(grid_size)) {
+                    grid_size = [grid_size, grid_size];
+                  }
+                  // console.log("grid_size")
+                  // console.log(grid_size)
+                  // console.log(typeof(grid_size))
+
+                  cell_size = 25;
+                  if (Math.max(grid_size[0], grid_size[1]) > 18) {
+                    cell_size = Math.round(cell_size * 18/Math.max(grid_size[0], grid_size[1]))
+                  }
+
+                  Array.from(document.getElementsByClassName("grid")).forEach(function (grid) {
+                    grid.innerHTML = "";
+                    grid.style = "grid-template-columns: repeat("+grid_size[0]+", "+ cell_size +"px); grid-template-rows: repeat("+grid_size[1]+", " + cell_size + "px);"
+                    for (i=0; i < grid_size[0]*grid_size[1]; i++) {
+                      const button = document.createElement("button")
+                      button.classList.add("cell");
+                      button.id = i.toString();
+                      button.width = "0px"
+                      button.height = "0px"
+                      button.padding = Math.round(Math.max(cell_size/2 - 1, 1)).toString() + "px"
+                      button.onclick = function() { console.log(button.id); click(parseInt(button.id));};
+                      grid.appendChild(button);
                     }
-                  };
-                  console.log("hello");
-                  document.getElementById("play-button").innerHTML = "<i style='font-size: medium' class='fa fa-spinner fa-spin'></i>";
+                  });
+                  paused = false;
+                  if (intervalID != -1) {
+                    clearInterval(intervalID);
+                  }
+
+                  var background = env.state.scene.background  
+                  var cells = interpret({ "head" : "call", "args": ["renderScene", [env.state.scene]]}, env)[0].map(cell => [cell.position.x, cell.position.y, JSON.stringify(cell.color).slice(8, -2)]);
+
+                  updateCellStyles(JSON.stringify([background, cells])); 
+                  intervalID = setInterval(step_time, timestep);
+                  updateButtonStyles();
+                  // console.log("here?");
+
+                  // console.log("hello");
+                  // document.getElementById("play-button").innerHTML = "<i style='font-size: medium' class='fa fa-spinner fa-spin'></i>";
                   not_run_yet = false;
-                  xhr.send();
                 } else {
                   paused = false;
-                  intervalID = setInterval(step, timestep);
+                  intervalID = setInterval(step_time, timestep);
                   updateButtonStyles();
                 }
               }
@@ -841,25 +849,22 @@
     
           function restartClick() {
             if (!history_mode) {
-              var xhr = new XMLHttpRequest();
-              xhr.open("GET", host + '/startautumn?clientid='+client_id, true);
-    
-              //Send the proper header information along with the request
-              xhr.setRequestHeader("Content-Type", "application/json");
-    
-              xhr.onreadystatechange = function () { // Call a function when the state changes.
-                if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-                    // Request finished. Do processing here.
-                    if (intervalID != -1) {
-                      clearInterval(intervalID);
-                    }
-                    //updateCellStyles(`["#ffffff00"]`);
-                    paused = false;
-                    intervalID = setInterval(step, timestep);
-                    updateButtonStyles();
-                }
-              };
-              xhr.send();
+              
+              [aex, env] = start(aex);
+              var background = env.state.scene.background  
+              var cells = interpret({ "head" : "call", "args": ["renderScene", [env.state.scene]]}, env)[0].map(cell => [cell.position.x, cell.position.y, JSON.stringify(cell.color).slice(8, -2)]);
+              updateCellStyles(JSON.stringify([background, cells]));
+
+              // Request finished. Do processing here.
+              if (intervalID != -1) {
+                clearInterval(intervalID);
+              }
+              //updateCellStyles(`["#ffffff00"]`);
+
+              paused = false;
+              intervalID = setInterval(step_time, timestep);
+              updateButtonStyles();
+
             } else {
               history_index = 0;
               historyIntervalID = setInterval(historyStep, historytimestep);
@@ -870,85 +875,68 @@
     
           function click(id) {
             if (!history_mode) {
-              if (intervalID != -1) {
-                var xhr = new XMLHttpRequest();
-                xhr.open("GET", host + '/clicked?x='+(id % grid_size[0])+'&y='+Math.floor(id/grid_size[0])+'&clientid='+client_id, true);
-    
-                //Send the proper header information along with the request
-                xhr.setRequestHeader("Content-Type", "application/json");
-    
-                xhr.onreadystatechange = function () { // Call a function when the state changes.
-                  if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-                      // Request finished. Do processing here.
-                      updateCellStyles(xhr.response);
-                  }
-                };
-                xhr.send();
+              if (intervalID != -1) {                
+                user_event = {"left" : false, "right" : false, "up" : false, "down" : false, "click" : {"x" : (id % grid_size[0]), "y" : Math.floor(id/grid_size[0])}}
+                env = step(aex, env, user_event);
+
+                var background = env.state.scene.background  
+                var cells = interpret({ "head" : "call", "args": ["renderScene", [env.state.scene]]}, env)[0].map(cell => [cell.position.x, cell.position.y, JSON.stringify(cell.color).slice(8, -2)]);
+
+                updateCellStyles(JSON.stringify([background, cells]));
               }
             }
           }
     
           document.addEventListener('keyup', function(event) {
             if (!history_mode && (intervalID != -1)) {
-              var xhr = new XMLHttpRequest();
-              let key = "";
               switch (event.key) {
                 case "ArrowLeft":
-                  key = "left";
+                  user_event = {"left" : true, "right" : false, "up" : false, "down" : false, "click" : null}
                   break;
                 case "ArrowRight":
-                  key = "right";
+                user_event = {"left" : false, "right" : true, "up" : false, "down" : false, "click" : null}
                   break;
                 case "ArrowUp":
-                  key = "up";
+                user_event = {"left" : false, "right" : false, "up" : true, "down" : false, "click" : null}
                   break;
                 case "ArrowDown":
-                  key = "down";
+                  user_event = {"left" : false, "right" : false, "up" : false, "down" : true, "click" : null}
                   break; 
               }
-              xhr.open("GET", host + '/' + key + '?clientid='+client_id, true);
-    
-              //Send the proper header information along with the request
-              xhr.setRequestHeader("Content-Type", "application/json");
-    
-              xhr.onreadystatechange = function () { // Call a function when the state changes.
-                if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-                    // Request finished. Do processing here.
-                    updateCellStyles(xhr.response);
-                }
-              };
-              xhr.send();          
+
+              env = step(aex, env, user_event);
+
+              var background = env.state.scene.background  
+              var cells = interpret({ "head" : "call", "args": ["renderScene", [env.state.scene]]}, env)[0].map(cell => [cell.position.x, cell.position.y, JSON.stringify(cell.color).slice(8, -2)]);
+
+              updateCellStyles(JSON.stringify([background, cells]));
             }
           });
     
           
     
-          function step() {
-            console.log("step");
-            var xhr = new XMLHttpRequest();
-    
-            xhr.open("GET", host + '/step?clientid='+client_id, true);
-    
-            //Send the proper header information along with the request
-            xhr.setRequestHeader("Content-Type", "application/json");
-    
-            xhr.onreadystatechange = function () { // Call a function when the state changes.
-              if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-                  // Request finished. Do processing here.
-                  console.log("success!");
-                  console.log("xhr.response: "+JSON.stringify(xhr.response));
-                  console.log(typeof(JSON.parse(xhr.response)))
-    
-                  updateCellStyles(xhr.response);
-                  clearInterval(intervalID);
-                  if (paused) {
-                    intervalID = -1;
-                  } else {
-                    intervalID = setInterval(step, timestep);
-                  }
-              }
-            };
-            xhr.send();
+          function step_time() {
+            // console.log("step_time");
+            env = step(aex, env, user_event);
+
+            var background = env.state.scene.background  
+            var cells = interpret({ "head" : "call", "args": ["renderScene", [env.state.scene]]}, env)[0].map(cell => [cell.position.x, cell.position.y, JSON.stringify(cell.color).slice(8, -2)]);
+            
+            // console.log("background");
+            // console.log(background);
+
+            // console.log("cells");
+            // console.log(cells);
+            
+            updateCellStyles(JSON.stringify([background, cells]));
+
+            // Request finished. Do processing here.
+            clearInterval(intervalID);
+            if (paused) {
+              intervalID = -1;
+            } else {
+              intervalID = setInterval(step_time, timestep);
+            }
           }
     
           function saveClick() {
@@ -964,8 +952,8 @@
               xhr.onreadystatechange = function () { // Call a function when the state changes.
                 if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
                   // Request finished. Do processing here.
-                  console.log("success!");
-                  console.log("xhr.response: "+JSON.stringify(xhr.response));
+                  // console.log("success!");
+                  // console.log("xhr.response: "+JSON.stringify(xhr.response));
                   saved = true;
                   history_mode = false;
                   updateButtonStyles();
@@ -979,26 +967,16 @@
           function historyClick() {
             if (!history_mode) {
               history_mode = true;
-              var xhr = new XMLHttpRequest();
-    
-              xhr.open("GET", host + '/replay?clientid='+client_id, true);
-                      //Send the proper header information along with the request
-                      xhr.setRequestHeader("Content-Type", "application/json");
-    
-              xhr.onreadystatechange = function () { // Call a function when the state changes.
-                if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-                    // Request finished. Do processing here.
-                    console.log("success!");
-                    console.log("xhr.response: "+JSON.stringify(xhr.response));
-    
-                    history_response = xhr.response;
-                    history_index = 0;
-                    historyIntervalID = setInterval(historyStep, historytimestep);
-                    updateButtonStyles();
-                }
-              };
-              xhr.send();
-    
+
+              // Request finished. Do processing here.
+              // console.log("success!");
+
+
+
+              history_response = "";
+              history_index = 0;
+              historyIntervalID = setInterval(historyStep, historytimestep);
+              updateButtonStyles();
             } else {
               history_mode = false;
               history_response = '{}';
@@ -1010,13 +988,13 @@
     
           function historyStep() {
             if (history_index < Object.keys(JSON.parse(history_response)).length) {
-              console.log(history_response);
-              console.log(JSON.parse(history_response)[history_index])
+              // console.log(history_response);
+              // console.log(JSON.parse(history_response)[history_index])
               ret_val = JSON.parse(history_response)[history_index]
-              console.log("here: history_index")
-              console.log(history_index)
-              console.log("here: ret_val")
-              console.log(JSON.stringify(ret_val))
+              // console.log("here: history_index")
+              // console.log(history_index)
+              // console.log("here: ret_val")
+              // console.log(JSON.stringify(ret_val))
               updateCellStyles(JSON.stringify(ret_val));
               history_index++;
             } else {
@@ -1037,11 +1015,16 @@
                                                                                                 });
           particlesClick();
     
-        updateCellStyles(`["#ffffff00"]`);
+        updateCellStyles(`["#ffffff00", []]`);
     
-        function colorToRGBA(color, a) {
-          //console.log("colorToRGBA")
-          //console.log(color);
+        function colorToRGBA(color_, a) {
+          // console.log("colorToRGBA")
+          // console.log(color_);
+          if (typeof(color_) != "string") {
+            var color = JSON.stringify(color_).slice(8, -2);
+          } else {
+            var color = color_;
+          }
           if (color[0] != "#") {
             hex = colors[color];
           } else {
@@ -2043,7 +2026,7 @@
     (= water (addObj (prev water) (Water (.. (moveDown (prev cloud)) origin)))))
   
   (on (intersects (map (--> obj (moveDown obj)) (prev water) ) (prev leaves))
-    (= water (removeObj (prev water) (--> obj (intersects (moveDown obj) (prev leaves))) ) ) )
+    (= water (removeObj water (--> obj (intersects (moveDown (prev obj)) (prev leaves))) ) ) )
   
   (on (& (intersects (map (--> obj (moveDown obj)) (prev water)) (filter (--> obj (== (.. obj color) "green")) (prev leaves))) (! (intersects (prev sun) (prev cloud))))
     (= leaves (addObj (prev leaves) (map (--> obj (Leaf (if (== (.. (.. (moveUp obj) origin) y) 4) then "mediumpurple" else "green") (.. (moveUp obj) origin))) (filter (--> obj (intersects (moveUp obj) (prev water))) (prev leaves))))))
@@ -2128,7 +2111,13 @@
   (= waterButton (initnext (Button "green" (Position 7 0)) (prev waterButton)))
   
   (: sand (List Sand))
-  (= sand (initnext (list) 
+  (= sand (initnext (list (Sand false (Position 2 9)) (Sand false (Position 3 9)) (Sand false (Position 4 9)) (Sand false (Position 5 9)) (Sand false (Position 6 9)) (Sand false (Position 7 9))
+                          (Sand false (Position 2 8)) (Sand false (Position 3 8)) (Sand false (Position 4 8)) (Sand false (Position 5 8)) (Sand false (Position 6 8)) (Sand false (Position 7 8))
+                          (Sand false (Position 2 7)) (Sand false (Position 3 7)) (Sand false (Position 4 7)) (Sand false (Position 5 7)) (Sand false (Position 6 7)) (Sand false (Position 7 7))
+                          (Sand false (Position 2 6)) (Sand false (Position 4 6))  (Sand false (Position 5 6)) (Sand false (Position 7 6))
+                          (Sand false (Position 2 5)) (Sand false (Position 4 5))  (Sand false (Position 5 5)) (Sand false (Position 7 5))                    
+                    )
+            		
             (updateObj (prev sand) (--> obj (if (.. obj liquid) 
   then (nextLiquid obj)
   else (nextSolid obj))))))
@@ -2140,7 +2129,7 @@
   (: clickType String)
   (= clickType (initnext "sand" (prev clickType)))
   
-  (on true (= sand (updateObj (prev sand) (--> obj (updateObj obj "liquid" true)) (--> obj (& (! (.. obj liquid)) (intersects (adjacentObjs obj 1) (prev water)))))))
+  (on true (= sand (updateObj sand (--> obj (updateObj obj "liquid" true)) (--> obj (& (! (.. obj liquid)) (intersects (adjacentObjs obj 1) (prev water)))))))
   
   (on (clicked sandButton) (= clickType "sand"))
   (on (clicked waterButton) (= clickType "water"))
@@ -2176,7 +2165,7 @@
   (: gravity String)
   (= gravity (initnext "down" (prev gravity)))
   
-  (on (== gravity "left") (= blobs (updateObj blobs (--> obj (moveLef obj)))))
+  (on (== gravity "left") (= blobs (updateObj blobs (--> obj (moveLeft obj)))))
   (on (== gravity "right") (= blobs (updateObj blobs (--> obj (moveRight obj)))))
   (on (== gravity "up") (= blobs (updateObj blobs (--> obj (moveUp obj)))))
   (on (== gravity "down") (= blobs (updateObj blobs (--> obj (moveDown obj)))))
@@ -2830,15 +2819,15 @@
   (on (& up (! (in slide (list "none" "down")))) (= slide "up"))
   (on (& down (! (in slide (list "none" "up")))) (= slide "down"))
 
+  (on (& (!= (prev slide) "none") (! (intersects (prev skater) rink))) 
+    (= slide "none"))  
+  
   (on (== slide "left") (= skater (move (prev skater) -2 0)))
   (on (== slide "right") (= skater (move (prev skater) 2 0)))
   (on (== slide "up") (= skater (move (prev skater) 0 -2)))
   (on (== slide "down") (= skater (move (prev skater) 0 2)))
 
-  
-  (on (& (!= (prev slide) "none") (! (intersects (prev skater) rink))) 
-    (= slide "none")) 
-  
+   
   (on (& (! (intersects (prev skater) rink)) (intersects skater rink)) 
     (= slide (if left then "left" else (if right then "right" else (if up then "up" else "down")))))    
 )`)
@@ -3190,7 +3179,7 @@
   (on true (= agent (moveDownNoCollision (prev agent))))
   (on left (= agent (moveLeftNoCollision (prev agent))))
   (on right (= agent (moveRightNoCollision (prev agent))))
-  (on (& up (== (.. (prev agent) origin) (.. (moveDownNoCollision (prev agent)) origin))) (= agent (moveUpNoCollision (prev agent))))
+  (on (& up (== (.. (prev agent) origin) (.. (moveDownNoCollision (prev agent)) origin))) (= agent (move (prev agent) 0 -2)))
 
   (on (& left (intersects (moveLeft (prev agent)) (prev ammo))) (= agent (moveLeft (prev agent))))
   (on (& right (intersects (moveRight (prev agent)) (prev ammo))) (= agent (moveRight (prev agent))))
@@ -3242,7 +3231,7 @@
   (on left (= jumper (moveLeftNoCollision (prev jumper))))
   (on right (= jumper (moveRightNoCollision (prev jumper))))
   
-  (on (& (<= (prev energy) 10) (== (.. (.. (prev jumper) origin) y) (- GRID_SIZE 2)))
+  (on (& (== (% time 10) 0) (& (<= (prev energy) 10) (== (.. (.. (prev jumper) origin) y) (- GRID_SIZE 2))))
       (= energy (+ energy 1)))
 
   (on clicked (let ((= jumper (move (prev jumper) 0 (* -1 energy))) 
@@ -3422,7 +3411,7 @@
       };
 
       function SParse(stream) {
-        var parser = new SParse.Parser(stream);
+        var parser = new SParser(stream);
         var expression = parser.expr();
 
         if (expression instanceof Error) {
@@ -3641,59 +3630,59 @@
       // autumnstdlib.js 
 
       function ObjectType(render, fields) {
-  console.log("OBJECT_TYPE");
-  console.log({"render" : render, "fields" : fields});
+  // console.log("OBJECT_TYPE");
+  // console.log({"render" : render, "fields" : fields});
   return {"render" : render, "fields" : fields};
 }
 
 function Position(args, state=null) {
   var [x, y] = args;
-  console.log("POSITION")
-  console.log([x, y])
+  // console.log("POSITION")
+  // console.log([x, y])
   return {"x" : x, "y" : y};
 }
 
 function Cell(args, state=null) {
   if (args.length == 3) {
     var [x, y, color] = args;
-    console.log("CELL")
-    console.log([x, y, color])
+    // console.log("CELL")
+    // console.log([x, y, color])
     return {"position" : {"x" : x, "y" : y}, "color" : color };
   } else {
     var [position, color] = args;
-    console.log("CELL")
-    console.log([position, color])
+    // console.log("CELL")
+    // console.log([position, color])
     return {"position" : {"x" : position.x, "y" : position.y}, "color" : color };
   }
 }
 
 function moveLeft(args, state=null) {
-  console.log("MOVELEFT");
-  console.log(args);
+  // console.log("MOVELEFT");
+  // console.log(args);
   var obj = JSON.parse(JSON.stringify(args[0]));
   obj.origin.x = obj.origin.x - 1;
   return obj;
 }
 
 function moveRight(args, state=null) {
-  console.log("MOVERIGHT");
-  console.log(args);
+  // console.log("MOVERIGHT");
+  // console.log(args);
   var obj = JSON.parse(JSON.stringify(args[0]));
   obj.origin.x = obj.origin.x + 1;
   return obj;
 }
 
 function moveUp(args, state=null) {
-  console.log("MOVEUP");
-  console.log(args);
+  // console.log("MOVEUP");
+  // console.log(args);
   var obj = JSON.parse(JSON.stringify(args[0]));
   obj.origin.y = obj.origin.y - 1;
   return obj;
 }
 
 function moveDown(args, state=null) {
-  console.log("MOVEDOWN");
-  console.log(args);
+  // console.log("MOVEDOWN");
+  // console.log(args);
   var obj = JSON.parse(JSON.stringify(args[0]));
   obj.origin.y = obj.origin.y + 1;
   return obj;
@@ -3714,8 +3703,8 @@ function render(args, state=null) {
   if (obj.alive) {
     if (obj.render == null) {
       render_ = state.object_types[obj.type].render;
-      console.log("render_");
-      console.log(render_);
+      // console.log("render_");
+      // console.log(render_);
       return render_.map(cell => Cell([move([cell.position, obj.origin]), cell.color]));
     } else {
       return obj.render.map(cell => Cell([move([cell.position, obj.origin]), cell.color]));
@@ -3736,10 +3725,10 @@ function occurred(args, state=null) {
 }
 
 function uniformChoice(args, state=null) {
-  console.log("UNIFORMCHOICE");
+  // console.log("UNIFORMCHOICE");
   var freePositions = args[0];
-  console.log("freePositions");
-  console.log(freePositions);
+  // console.log("freePositions");
+  // console.log(freePositions);
   if (args.length == 1) {
     return freePositions[Math.floor(Math.random()*freePositions.length)];
   } else {
@@ -3758,7 +3747,7 @@ function isWithinBounds(args, state=null) {
     return render([obj], state).filter(cell => !isWithinBounds([cell.position], state)).length == 0;
   } else {
     var position = args[0];
-    var GRID_SIZE = state.histories.GRID_SIZE['0']; 
+    var GRID_SIZE = state.histories.GRID_SIZE[(state.time - 1).toString()]; 
     if (Array.isArray(GRID_SIZE)) { 
       var [GRID_SIZE_X, GRID_SIZE_Y] = GRID_SIZE;
     } else {
@@ -3775,21 +3764,21 @@ function isOutsideBounds(args, state=null) {
 }
 
 function clicked(args, state=null) {
-  console.log("clicked woo");
-  console.log(args);
-  console.log(JSON.stringify(args));
-  console.log(state);
-  console.log(JSON.stringify(state));
+  // console.log("clicked woo");
+  // console.log(args);
+  // console.log(JSON.stringify(args));
+  // console.log(state);
+  // console.log(JSON.stringify(state));
   if (args.length == 2) {
     if (Array.isArray(args[1])) { // clicked array of objects
       var [click, objects] = args;
       if (click == null) {
         return false;
       } else {
-        console.log("clicked sad");
-        console.log("ret_val");
-        console.log(objects.map(obj => clicked([click, obj], state)).reduce((a, b) => a || b, false));
-        console.log("huh");
+        // console.log("clicked sad");
+        // console.log("ret_val");
+        // console.log(objects.map(obj => clicked([click, obj], state)).reduce((a, b) => a || b, false));
+        // console.log("huh");
         return objects.map(obj => clicked([click, obj], state)).reduce((a, b) => a || b, false);
       }
     } else if (args[1].id != undefined) { // clicked(click, object)
@@ -3798,7 +3787,7 @@ function clicked(args, state=null) {
       if (click == null) {
         return false;
       } else {
-        var GRID_SIZE = state.histories.GRID_SIZE['0'];
+        var GRID_SIZE = state.histories.GRID_SIZE[(state.time - 1).toString()];
         if (Array.isArray(GRID_SIZE)) {
           var GRID_SIZE_X = GRID_SIZE[0]
           var nums = render([object], state).map(cell => GRID_SIZE_X*cell.position.y + cell.position.x);
@@ -3828,8 +3817,8 @@ function clicked(args, state=null) {
 }
 
 function objClicked(args, state=null) {
-  console.log("objClicked woo");
-  console.log(args);
+  // console.log("objClicked woo");
+  // console.log(args);
   var [click, objects] = args;
   if (click == null) {
     return null;
@@ -3838,8 +3827,8 @@ function objClicked(args, state=null) {
     if (clicked_objects.length == 0) {
       return null;
     } else {
-      console.log("answer");
-      console.log(clicked_objects[0]);
+      // console.log("answer");
+      // console.log(clicked_objects[0]);
       return JSON.parse(JSON.stringify(clicked_objects[0]));
     }
   }
@@ -3854,14 +3843,16 @@ function objClicked(args, state=null) {
 // }
 
 function intersects(args, state=null) {
-  console.log("INTERSECTS");
-  console.log(args);
+  // console.log("INTERSECTS");
+  // console.log(args);
+  // console.log("state");
+  // console.log(state);
   if (args.length == 2) {
     var [obj1, obj2] = args;
 
     if (!Array.isArray(obj1) && !Array.isArray(obj2)) {
 
-      var GRID_SIZE = state.histories.GRID_SIZE['0'];
+      var GRID_SIZE = state.histories.GRID_SIZE[(state.time - 1).toString()];
       if (Array.isArray(GRID_SIZE)) {
         var [GRID_SIZE_X, GRID_SIZE_Y] = GRID_SIZE;
         var nums1 = render([obj1], state).map(cell => GRID_SIZE_X*cell.position.y + cell.position.x);
@@ -3875,7 +3866,7 @@ function intersects(args, state=null) {
 
     } else if (!Array.isArray(obj1) && Array.isArray(obj2)) {
 
-      var GRID_SIZE = state.histories.GRID_SIZE['0'];
+      var GRID_SIZE = state.histories.GRID_SIZE[(state.time - 1).toString()];
       if (Array.isArray(GRID_SIZE)) {
         var [GRID_SIZE_X, GRID_SIZE_Y] = GRID_SIZE;
         var nums1 = render([obj1], state).map(cell => GRID_SIZE_X*cell.position.y + cell.position.x);
@@ -3883,30 +3874,30 @@ function intersects(args, state=null) {
         
         return nums1.filter(n => nums2.includes(n)).length != 0;
       } else {
-        console.log(JSON.stringify(obj1));
-        console.log(JSON.stringify(obj2));
+        // console.log(JSON.stringify(obj1));
+        // console.log(JSON.stringify(obj2));
 
-        console.log("GRID_SIZE");
-        console.log(GRID_SIZE);
-        console.log("HUH");
-        console.log(render([obj1], state));
-        console.log("HUH END");
-        console.log(unfold([obj2.map(o => render([o], state))]));
-        console.log("HUH END 2");
+        // console.log("GRID_SIZE");
+        // console.log(GRID_SIZE);
+        // console.log("HUH");
+        // console.log(render([obj1], state));
+        // console.log("HUH END");
+        // console.log(unfold([obj2.map(o => render([o], state))]));
+        // console.log("HUH END 2");
         var nums1 = render([obj1], state).map(cell => GRID_SIZE*cell.position.y + cell.position.x);
         var nums2 = unfold([obj2.map(o => render([o], state))]).map(cell => GRID_SIZE*cell.position.y + cell.position.x);
         
-        console.log("nums1");
-        console.log(nums1);
-        console.log("nums2");
-        console.log(nums2);
+        // console.log("nums1");
+        // console.log(nums1);
+        // console.log("nums2");
+        // console.log(nums2);
         
         return nums1.filter(n => nums2.includes(n)).length != 0;
       }
 
     } else if (Array.isArray(obj1) && !Array.isArray(obj2)) {
 
-      var GRID_SIZE = state.histories.GRID_SIZE['0'];
+      var GRID_SIZE = state.histories.GRID_SIZE[(state.time - 1).toString()];
       if (Array.isArray(GRID_SIZE)) {
         var [GRID_SIZE_X, GRID_SIZE_Y] = GRID_SIZE;
         var nums2 = render([obj2], state).map(cell => GRID_SIZE_X*cell.position.y + cell.position.x);
@@ -3920,7 +3911,7 @@ function intersects(args, state=null) {
 
     } else if (Array.isArray(obj1) && Array.isArray(obj2)) {
 
-      var GRID_SIZE = state.histories.GRID_SIZE['0'];
+      var GRID_SIZE = state.histories.GRID_SIZE[(state.time - 1).toString()];
       if (Array.isArray(GRID_SIZE)) {
         var [GRID_SIZE_X, GRID_SIZE_Y] = GRID_SIZE;
         var nums2 = unfold([obj2.map(o => render([o], state))]).map(cell => GRID_SIZE_X*cell.position.y + cell.position.x);
@@ -3941,9 +3932,9 @@ function intersects(args, state=null) {
 }
 
 function addObj(args, state=null) {
-  console.log("addObj woo");
-  console.log("args");
-  console.log(args);
+  // console.log("addObj woo");
+  // console.log("args");
+  // console.log(args);
   var [arr, obj] = args; 
   var new_arr = JSON.parse(JSON.stringify(arr));
   if (!Array.isArray(obj)) {
@@ -3951,14 +3942,14 @@ function addObj(args, state=null) {
   } else {
     new_arr.push(...JSON.parse(JSON.stringify(obj)));
   }
-  console.log("new_arr");
-  console.log(new_arr);
+  // console.log("new_arr");
+  // console.log(new_arr);
   return new_arr;
 }
 
 function removeObj(args, state=null) {
-  console.log("removeObj woo");
-  console.log(args);
+  // console.log("removeObj woo");
+  // console.log(args);
   if (args.length == 2) {
     var [arr, x] = JSON.parse(JSON.stringify(args)); 
     if (x.id != undefined) { // x is an object
@@ -3967,12 +3958,12 @@ function removeObj(args, state=null) {
           elt.alive = false;
         }
       }
-      console.log("filtered_arr");
-      console.log(arr);
+      // console.log("filtered_arr");
+      // console.log(arr);
       return arr;
     } else {
-      console.log("filtered_arr 2");
-      console.log(arr.filter(elt => !x(elt)))
+      // console.log("filtered_arr 2");
+      // console.log(arr.filter(elt => !x(elt)))
       return arr.filter(elt => !x(elt));
     }
     return arr;
@@ -3997,8 +3988,8 @@ function adjPositions(args, state=null) {
 }
 
 function isFree(args, state=null) {
-  console.log("isFree");
-  console.log(args);
+  // console.log("isFree");
+  // console.log(args);
   if (args.length == 1) {
     if (Array.isArray(args[0])) {
       var positions = args[0];
@@ -4014,7 +4005,7 @@ function isFree(args, state=null) {
   } else if (args.length == 2) {
     if (args[0].id == undefined && args[1].id == undefined) { // position, position
       var [start, stop] = args;
-      var GRID_SIZE = state.histories.GRID_SIZE['0'];
+      var GRID_SIZE = state.histories.GRID_SIZE[(state.time - 1).toString()];
       if (Array.isArray(GRID_SIZE)) { 
         var GRID_SIZE_X = GRID_SIZE[0];
         var GRID_SIZE_Y = GRID_SIZE[1];
@@ -4032,7 +4023,7 @@ function isFree(args, state=null) {
         var ordered_end = translated_start;
       }
       var nums = Array.from(Array(ordered_end - ordered_start + 1).keys()).map(x => x + ordered_start); // [ordered_start:ordered_end;]
-      return nums.map(num => isFree([Position([num % GRID_SIZE_X, Math.floor(Int, num / GRID_SIZE_X)])], state)).reduce((a, b) => (a && b), true);
+      return nums.map(num => isFree([Position([num % GRID_SIZE_X, Math.floor(num / GRID_SIZE_X)])], state)).reduce((a, b) => (a && b), true);
     } else if (args[0].id != undefined && args[1].id != undefined) { // object, object
       var [object, orig_object] = args;
       return render([object], state).map(cell => cell.position).map(x => isFree([x, orig_object], state)).reduce((a, b) => (a && b), true);
@@ -4043,7 +4034,7 @@ function isFree(args, state=null) {
 
   } else if (args.length == 3) {
     var [start, stop, object] = args;
-    var GRID_SIZE = state.histories.GRID_SIZE['0'];
+    var GRID_SIZE = state.histories.GRID_SIZE[(state.time - 1).toString()];
     if (Array.isArray(GRID_SIZE)) { 
       var GRID_SIZE_X = GRID_SIZE[0];
       var GRID_SIZE_Y = GRID_SIZE[1];
@@ -4061,7 +4052,7 @@ function isFree(args, state=null) {
       var ordered_end = translated_start;
     }
     var nums = Array.from(Array(ordered_end - ordered_start + 1).keys()).map(x => x + ordered_start); // [ordered_start:ordered_end;]
-    return nums.map(num => isFree([Position([num % GRID_SIZE_X, Math.floor(Int, num / GRID_SIZE_X)]), object], state)).reduce((a, b) => (a && b), true);
+    return nums.map(num => isFree([Position([num % GRID_SIZE_X, Math.floor(num / GRID_SIZE_X)]), object], state)).reduce((a, b) => (a && b), true);
   }
 }
 
@@ -4088,8 +4079,8 @@ function rect(args, state=null) {
 }
 
 function unitVector(args, state=null) {
-  console.log("UNITVECTOR");
-  console.log(args);
+  // console.log("UNITVECTOR");
+  // console.log(args);
   if (args.length == 2) {
     var [a, b] = args;
     if (a.id == undefined && b.id == undefined) {
@@ -4133,7 +4124,7 @@ function adjacent(args, state=null) {
     return cells.filter(x => adjacent([cell, x, unitSize])).length != 0;
   } else { // cell/cell version
     var [cell1, cell2, unitSize] = args;
-    return adjacent([cell1.position, cell2.position. unitSize]);
+    return adjacent([cell1.position, cell2.position, unitSize]);
   }
 }
 
@@ -4153,21 +4144,21 @@ function adjacentDiag(args, state=null) {
 }
 
 function adj(args, state=null) {
-  console.log("adj");
-  console.log(args);
+  // console.log("adj");
+  // console.log(args);
   var [obj1, obj2, unitSize] = args;
   if (!Array.isArray(obj1) && !Array.isArray(obj2)) {
-    console.log("answer 1");
-    console.log(adjacentObjs([obj1, unitSize], state).filter(o => o.id == obj2.id).length != 0);
+    // console.log("answer 1");
+    // console.log(adjacentObjs([obj1, unitSize], state).filter(o => o.id == obj2.id).length != 0);
     return adjacentObjs([obj1, unitSize], state).filter(o => o.id == obj2.id).length != 0;
   } else if (!Array.isArray(obj1) && Array.isArray(obj2)) {
-    console.log("answer 2");
-    console.log(adjacentObjs([obj1, unitSize], state).filter(o => obj2.map(x => x.id).includes(o.id)).length != 0);
+    // console.log("answer 2");
+    // console.log(adjacentObjs([obj1, unitSize], state).filter(o => obj2.map(x => x.id).includes(o.id)).length != 0);
     return adjacentObjs([obj1, unitSize], state).filter(o => obj2.map(x => x.id).includes(o.id)).length != 0;
   } else { // both are arrays
-    console.log("answer 3");
+    // console.log("answer 3");
     var obj1_adjacentObjs = unfold(obj1.map(x => adjacentObjs([x, unitSize], state)));
-    console.log(intersect(obj1_adjacentObjs.map(x => x.id), obj2.map(x => x.id)).length != 0)
+    // console.log(intersect(obj1_adjacentObjs.map(x => x.id), obj2.map(x => x.id)).length != 0)
     return intersect(obj1_adjacentObjs.map(x => x.id), obj2.map(x => x.id)).length != 0;
   }
 }
@@ -4190,15 +4181,15 @@ function intersect(arr1, arr2) {
 // }
 
 function move(args, state=null) {
-  console.log("MOVE WOO");
-  console.log(args);
+  // console.log("MOVE WOO");
+  // console.log(args);
   if (args.length == 2) {
     var [a, b] = args;
     if (a.id != undefined) {
       var new_a = JSON.parse(JSON.stringify(a));
       new_a.origin = move([a.origin, b]);
-      console.log("new_a");
-      console.log(new_a);
+      // console.log("new_a");
+      // console.log(new_a);
       return new_a;
     } else if (a.color == undefined && b.color == undefined) { // position, position
       return Position([a.x + b.x, a.y + b.y]);
@@ -4272,8 +4263,8 @@ function moveDownNoCollision(args, state=null) {
 // }
 
 function randomPositions(args, state=null) {
-  console.log("RANDOMPOSITIONS");
-  console.log(args);
+  // console.log("RANDOMPOSITIONS");
+  // console.log(args);
   var [GRID_SIZE, n] = args;
   if (Array.isArray(GRID_SIZE)) {
     var [GRID_SIZE_X, GRID_SIZE_Y] = GRID_SIZE;
@@ -4346,10 +4337,10 @@ function distance(args, state=null) {
 // }
 
 function closest(args, state=null) {
-  console.log("CLOSEST");
-  console.log(args);
-  console.log("huh");
-  var GRID_SIZE = state.histories.GRID_SIZE['0'];
+  // console.log("CLOSEST");
+  // console.log(args);
+  // console.log("huh");
+  var GRID_SIZE = state.histories.GRID_SIZE[(state.time - 1).toString()];
   if (Array.isArray(GRID_SIZE)) {
     GRID_SIZE = GRID_SIZE[0];
   }
@@ -4362,7 +4353,7 @@ function closest(args, state=null) {
     if (arr[0].x != undefined) { // array of positions
       var [object, positions] = JSON.parse(JSON.stringify(args));
       var distances = positions.map(pos => distance([pos, object.origin]));
-      distances.sort();
+      distances.sort((a, b) => a - b);
       var closestDistance = distances[0];
       var closest = positions.filter(pos => distance([pos, object.origin]) == closestDistance)[0];
       return closest;
@@ -4384,7 +4375,7 @@ function closest(args, state=null) {
     if (objects_of_type.length == 0) {
       return object.origin;
     } else {
-      console.log("hullo");
+      // console.log("hullo");
 
       var min_distance = Math.min(...objects_of_type.map(obj => distance([object, obj])));
       var objects_of_min_distance = JSON.parse(JSON.stringify(objects_of_type.filter(obj => distance([object, obj]) == min_distance)));
@@ -4429,11 +4420,11 @@ function mapPositions(args, state=null) {
 
 function nextLiquid(args, state=null) {
   // # # println("nextLiquid")
-  console.log("nextLiquid");
-  console.log(args);
+  // console.log("nextLiquid");
+  // console.log(args);
 
   var [object] = args;
-  var GRID_SIZE = state.histories.GRID_SIZE[0];
+  var GRID_SIZE = state.histories.GRID_SIZE[(state.time - 1).toString()];
   if (Array.isArray(GRID_SIZE)) { 
     var GRID_SIZE_X = GRID_SIZE[0]
     var GRID_SIZE_Y = GRID_SIZE[1]
@@ -4453,18 +4444,19 @@ function nextLiquid(args, state=null) {
                                                                  && isFree([pos], state));
     if ((leftHoles.length != 0) || (rightHoles.length != 0)) {
       if (leftHoles.length == 0) {
-        var closestHole = closest([object, rightHoles]);
+        var closestHole = closest([object, rightHoles], state);
         if (isFree([move([closestHole, Position([0, -1])]), move([object.origin, Position([1, 0])])], state)) {
           new_object.origin = move([object.origin, unitVector([object, move([closestHole, Position([0, -1])])], state)], state);
         }
       } else if (rightHoles.length == 0) {
-        var closestHole = closest([object, leftHoles]);
+        var closestHole = closest([object, leftHoles], state);
         if (isFree([move([closestHole, Position([0, -1])]), move([object.origin, Position([-1, 0])])], state)) {
           new_object.origin = move([object.origin, unitVector([object, move([closestHole, Position([0, -1])])], state)]);                    
         }
       } else {
-        var closestLeftHole = closest([object, leftHoles]);
-        var closestRightHole = closest([object, rightHoles]);
+        var closestLeftHole = closest([object, leftHoles], state);
+        var closestRightHole = closest([object, rightHoles], state);
+
         if (distance([object.origin, closestLeftHole]) > distance([object.origin, closestRightHole])) {
           if (isFree([move([object.origin, Position([1, 0])]), move([closestRightHole, Position([0, -1])])], state)) {
             new_object.origin = move([object.origin, unitVector([new_object, move([closestRightHole, Position([0, -1])])], state)]);
@@ -4490,16 +4482,16 @@ function nextSolid(args, state=null) {
 
 function allPositions(args, state=null) {
   var GRID_SIZE = args[0];
-  console.log("GRID_SIZE");
-  console.log(GRID_SIZE);
+  // console.log("GRID_SIZE");
+  // console.log(GRID_SIZE);
   if (Array.isArray(GRID_SIZE)) {
     var [GRID_SIZE_X, GRID_SIZE_Y] = GRID_SIZE;
   } else {
     var [GRID_SIZE_X, GRID_SIZE_Y] = [GRID_SIZE, GRID_SIZE];
   }
-  console.log(GRID_SIZE_X);
-  console.log(GRID_SIZE_Y);
-  var nums = Array.from(Array(GRID_SIZE_X*GRID_SIZE_Y - 1).keys()).map(x => x + 1);
+  // console.log(GRID_SIZE_X);
+  // console.log(GRID_SIZE_Y);
+  var nums = Array.from(Array(GRID_SIZE_X*GRID_SIZE_Y).keys());
   return nums.map(num => Position([num % GRID_SIZE_X, Math.floor(num / GRID_SIZE_X)], state));
 }
 
@@ -4709,9 +4701,9 @@ function primapl_uni(f, x, env) {
 }
 
 function primapl(f, x, y, env) {
-  console.log("PRIMAPL");
-  console.log(x);
-  console.log(y);
+  // console.log("PRIMAPL");
+  // console.log(x);
+  // console.log(y);
   var [x, env] = interpret(x, env);
   var [y, env] = interpret(y, env);
   if (f == "==" || f == "!=") {
@@ -4774,10 +4766,10 @@ function islib(f) {
 }
 
 function libapl(f, args, env) {
-  console.log("libapl");
-  console.log(f);
-  console.log(args);
-  console.log(JSON.stringify(env));
+  // console.log("libapl");
+  // console.log(f);
+  // console.log(args);
+  // console.log(JSON.stringify(env));
   if (f == "clicked" && args.length == 0) {
     return interpret(f, env);
   } else if (f == "clicked") {
@@ -4785,15 +4777,15 @@ function libapl(f, args, env) {
   } else {
     var has_function_arg = false; 
     for (arg of args) {
-      console.log("arg");
-      console.log(JSON.stringify(arg));
+      // console.log("arg");
+      // console.log(JSON.stringify(arg));
       if (Array.isArray(arg) && (arg.length == 2) && (isaexpr(arg[0]) || typeof(arg[0]) == "string") && (isaexpr(arg[1]) || typeof(arg[1]) == "string")) {
         has_function_arg = true;
       }
     }
 
-    console.log("has_function_arg__");
-    console.log(has_function_arg);
+    // console.log("has_function_arg__");
+    // console.log(has_function_arg);
     if (!has_function_arg && f != "updateObj") {
       return [lib_to_func[f](args.map(a => interpret(a, env)[0]), env.state), env]
     } else {
@@ -4827,10 +4819,10 @@ function isjslib(f) {
 
 function jslibapl(f, args, env) {
   if (f == "get") {
-    console.log("GET ME")
-    console.log(f);
-    console.log(args);
-    console.log(env);
+    // console.log("GET ME")
+    // console.log(f);
+    // console.log(args);
+    // console.log(env);
     var [dict, env] = interpret(args[0], env);
     var key = args[1];
     if (isaexpr(key)) {
@@ -4838,12 +4830,12 @@ function jslibapl(f, args, env) {
     } 
     var [default_, env] = interpret(args[2], env);
 
-    console.log("DICT");
-    console.log(dict);
-    console.log("key");
-    console.log(key);
-    console.log("default_");
-    console.log(default_);
+    // console.log("DICT");
+    // console.log(dict);
+    // console.log("key");
+    // console.log(key);
+    // console.log("default_");
+    // console.log(default_);
 
     return [(key in dict ? dict[key] : default_), env];
   } else if (f == "map") {  
@@ -4859,7 +4851,7 @@ function jslibapl(f, args, env) {
   } else if (f == "in") {
     var [elt, env] = interpret(args[0], env);
     var [l, env] = interpret(args[1], env);
-    return [l.includes(elt), env];
+    return [l.map(e => JSON.stringify(e)).includes(JSON.stringify(elt)), env];
   } else if (f == "intersect") {
     var [l1, env] = interpret(args[0], env);
     var [l2, env] = interpret(args[1], env);
@@ -4879,10 +4871,10 @@ function jslibapl(f, args, env) {
 }
 
 function interpret(aex, env) {
-  console.log("INTERPRET GLOBAL")
-  console.log(aex)
+  // console.log("INTERPRET GLOBAL")
+  // console.log(aex)
   if (isaexpr(aex)) {
-    console.log(aex.head)
+    // console.log(aex.head)
     if (aex.head == "if") {
       var [c, t, e] = aex.args; 
       var [v, env2] = interpret(c, env);
@@ -4921,10 +4913,10 @@ function interpret(aex, env) {
         args = [args];
       }
 
-      console.log("hm");
-      console.log(f);
-      console.log(args);
-      console.log(JSON.stringify(env));
+      // console.log("hm");
+      // console.log(f);
+      // console.log(args);
+      // console.log(JSON.stringify(env));
 
       if (isprim(f)) {
         
@@ -4934,18 +4926,18 @@ function interpret(aex, env) {
           return primapl(f, args[0], args[1], env);
         }
       } else if (f == "prev" && JSON.stringify(args) != JSON.stringify(["obj"])) {
-        console.log("WOAH  2");
+        // console.log("WOAH  2");
         var [v, env_] = interpret({"head" : "call", "args" : ["prev" + args[0][0].toUpperCase() + args[0].slice(1), ["state"]]}, env);
         return [JSON.parse(JSON.stringify(v)), env_]
       } else if (islib(f)) {
-        console.log("here?");
+        // console.log("here?");
         return interpret_lib(f, args, env);
       } else if (isjslib(f)) {
         return interpret_js_lib(f, args, env);
       } else if (f in env.state.object_types) {
         return interpret_object_call(f, args, env);
       } else {
-        console.log("WOAH");
+        // console.log("WOAH");
         if (Array.isArray(args)) {
           return interpret_call(f, args, env);
         } else {
@@ -4997,30 +4989,30 @@ function interpret(aex, env) {
 }
 
 function interpret_list(args, env) {
-  console.log("INTERPRET_LIST");
-  console.log(args);
+  // console.log("INTERPRET_LIST");
+  // console.log(args);
   var new_list = [];
   for (arg of args) {
     var [new_arg, env] = interpret(arg, env);
     new_list.push(new_arg);
   }
-  console.log("new_list");
-  console.log(new_list);
+  // console.log("new_list");
+  // console.log(new_list);
   return [new_list, env];
 }
 
 function interpret_lib(f, args, env) {
-  console.log("interpret_lib");
-  console.log(f);
-  console.log(args);
-  console.log(JSON.stringify(env));
+  // console.log("interpret_lib");
+  // console.log(f);
+  // console.log(args);
+  // console.log(JSON.stringify(env));
   var new_args = [];
   for (arg of args) {
     [new_arg, env] = interpret(arg, env);
     new_args.push(new_arg);
   }
-  console.log("new_args");
-  console.log(new_args);
+  // console.log("new_args");
+  // console.log(new_args);
   return libapl(f, new_args, env);
 } 
 
@@ -5042,9 +5034,9 @@ function interpret_field(x, f, env) {
 }
 
 function interpret_let(args, env) {
-  console.log("interpret_let");
-  console.log(args);
-  console.log(JSON.stringify(env));
+  // console.log("interpret_let");
+  // console.log(args);
+  // console.log(JSON.stringify(env));
   var env2 = JSON.parse(JSON.stringify(env));
   if (args.length > 0 ) {
     for (arg of args.slice(0, args.length - 1)) {
@@ -5053,8 +5045,8 @@ function interpret_let(args, env) {
 
     if (isaexpr(args[args.length - 1])) {
       if (args[args.length - 1].head == "assign") {
-        console.log("woo");
-        console.log(args[args.length - 1]);
+        // console.log("woo");
+        // console.log(args[args.length - 1]);
         var [v2, env2] = interpret(args[args.length - 1], env2);
         return [{"head" : "let", "args" : args}, env2];
       } else {
@@ -5071,19 +5063,19 @@ function interpret_let(args, env) {
 }
 
 function interpret_call(f, params, env) {
-  console.log("INTERPRET_CALL")
-  console.log(f)
-  console.log(params)
-  console.log(env)
+  // console.log("INTERPRET_CALL")
+  // console.log(f)
+  // console.log(params)
+  // console.log(env)
   var [func, env] = interpret(f, env);
   var func_args = func[0];
   var func_body = func[1];
 
-  console.log("func_args");
-  console.log(func_args);
+  // console.log("func_args");
+  // console.log(func_args);
 
-  console.log("func_body");
-  console.log(func_body);
+  // console.log("func_body");
+  // console.log(func_body);
 
   // construct environment 
   var old_current_var_values = JSON.parse(JSON.stringify(env.current_var_values));
@@ -5111,16 +5103,16 @@ function interpret_call(f, params, env) {
 }
 
 function interpret_object_call(f, args, env) {
-  console.log("INTERPRET_OBJECT_CALL");
-  console.log(f);
-  console.log(JSON.stringify(args));
-  console.log(JSON.stringify(env));
+  // console.log("INTERPRET_OBJECT_CALL");
+  // console.log(f);
+  // console.log(JSON.stringify(args));
+  // console.log(JSON.stringify(env));
   env.state.objectsCreated = env.state.objectsCreated + 1;
 
   var [origin, env] = interpret(args[args.length - 1], env);
 
-  console.log("ORIGIN");
-  console.log(origin);
+  // console.log("ORIGIN");
+  // console.log(origin);
   // object_repr = (origin=origin, type=f, alive=true, id=Γ.state.objectsCreated)
 
   var old_current_var_values = JSON.parse(JSON.stringify(env.current_var_values));
@@ -5150,13 +5142,13 @@ function interpret_object_call(f, args, env) {
 function interpret_init_next(var_name, var_val, env) {
   var init_func = var_val.args[0];
   var next_func = var_val.args[1];
-  console.log(JSON.stringify(env));
+  // console.log(JSON.stringify(env));
   var env2 = JSON.parse(JSON.stringify(env));
   if (!(var_name in env2.current_var_values)) { // variable not initialized; use init clause
     var [var_val, env2] = interpret(init_func, env2);
 
-    console.log("var_val");
-    console.log(var_val);
+    // console.log("var_val");
+    // console.log(var_val);
 
     env2.current_var_values[var_name] = var_val;
 
@@ -5171,9 +5163,9 @@ function interpret_init_next(var_name, var_val, env) {
 }
 
 function interpret_object(args, env) {
-  console.log("INTERPRET_OBJECT");
-  console.log(JSON.stringify(args));
-  console.log(JSON.stringify(env));
+  // console.log("INTERPRET_OBJECT");
+  // console.log(JSON.stringify(args));
+  // console.log(JSON.stringify(env));
   var object_name = args[0];
   var object_fields = args.slice(1,-1);
   var object_render = args[args.length - 1];
@@ -5195,10 +5187,10 @@ function interpret_on(args, env) {
   var event = args[0]
   var update_ = args[1]
 
-  console.log("interpret_on");
-  console.log(event);
-  console.log(update_);
-  console.log(JSON.stringify(env));
+  // console.log("interpret_on");
+  // console.log(event);
+  // console.log(update_);
+  // console.log(JSON.stringify(env));
 
   if (env.state.time > 0) {
     var [e, env] = interpret(event, env);
@@ -5212,14 +5204,14 @@ function interpret_on(args, env) {
 
 function interpret_updateObj(args, env) {
   // # # println("MADE IT!")
-  console.log("interpret_updateObj");
-  console.log(args);
-  console.log(env);
+  // console.log("interpret_updateObj");
+  // console.log(args);
+  // console.log(env);
   var env2 = JSON.parse(JSON.stringify(env));
   var numFunctionArgs = args.map(arg => Array.isArray(arg) && (arg.length == 2) && (isaexpr(arg[0]) || typeof(arg[0]) == "string") && (isaexpr(arg[1]) || typeof(arg[1]) == "string")).filter(x => x == true).length;
   
-  console.log("numFunctionArgs");
-  console.log(numFunctionArgs);
+  // console.log("numFunctionArgs");
+  // console.log(numFunctionArgs);
   if (numFunctionArgs == 1) {
     var [list, env2] = interpret(args[0], env2);
     var map_func = args[1];
@@ -5245,17 +5237,17 @@ function interpret_updateObj(args, env) {
     // # # @show list 
     // # # @show map_func
 
-    console.log("and i wanted you to know");
-    console.log("map_func");
-    console.log(map_func);
-    console.log("filter_func");
-    console.log(filter_func);
+    // console.log("and i wanted you to know");
+    // console.log("map_func");
+    // console.log(map_func);
+    // console.log("filter_func");
+    // console.log(filter_func);
 
     var new_list = [];
     for (let item of list) { 
       var [pred, env2] = interpret({"head" : "call", "args" : [filter_func, item]}, env2);
-      console.log("pred woo");
-      console.log(pred);
+      // console.log("pred woo");
+      // console.log(pred);
       if (pred == true) { 
         // # # println("PRED TRUE!")
         // # # @show item 
@@ -5274,10 +5266,10 @@ function interpret_updateObj(args, env) {
     var field_string = JSON.stringify(args[1]).slice(8, -2);
     var new_value = args[2];
 
-    console.log(JSON.stringify(obj));
-    console.log("look me here");
-    console.log(field_string);
-    console.log(new_value);
+    // console.log(JSON.stringify(obj));
+    // console.log("look me here");
+    // console.log(field_string);
+    // console.log(new_value);
 
     var new_obj = JSON.parse(JSON.stringify(obj)); // TODO
     new_obj.custom_fields[field_string] = new_value;
@@ -5308,16 +5300,16 @@ function interpret_updateObj(args, env) {
 }
 
 function interpret_removeObj(args, env) {
-  console.log("interpret_removeObj");
-  console.log(args);
-  console.log(JSON.stringify(env));
+  // console.log("interpret_removeObj");
+  // console.log(args);
+  // console.log(JSON.stringify(env));
   var [list, env] = interpret(args[0], env);
   var func = args[1];
   var new_list = [];
   for (let item of list) {
     var [pred, env] = interpret({"head" : "call", "args" : [func, item]}, env);
-    console.log("pred");
-    console.log(pred);
+    // console.log("pred");
+    // console.log(pred);
     if (!pred) {
       new_list.push(item);
     } else {
@@ -5329,29 +5321,44 @@ function interpret_removeObj(args, env) {
 }
 
 function interpret_js_map(args, env) {
-  console.log("INTERPRET_JS_MAP");
-  console.log(args);
-  console.log(env);
+  // console.log("INTERPRET_JS_MAP woo");
+  // console.log(args);
+  // console.log(env);
   var new_list = [];
   var map_func = args[0];
   var [list, env] = interpret(args[1], env);
+  // console.log("orig list woo");
+  // console.log(list);
   for (arg of list) { 
     var [new_arg, env] = interpret({"head" : "call", "args" : [map_func, arg]}, env)
     new_list.push(new_arg);
   }
+  // console.log("new_list");
+  // console.log(new_list);
   return [new_list, env]
 }
 
 function interpret_js_filter(args, env) {
+  // console.log("interpret_js_filter woo");
+  // console.log(args);
+  // console.log(env);
   var new_list = [];
   var filter_func = args[0];
   var [list, env] = interpret(args[1], env);
-  for (arg of list) {
+  // console.log("orig list");
+  // console.log(list);
+  for (let arg of list) {
+    // console.log("arg");
+    // console.log(arg);
     var [v, env] = interpret({"head" : "call", "args" : [filter_func, arg]}, env)
+    // console.log("pred v");
+    // console.log(v);
     if (v == true) { 
-      new_list.push(interpret(arg, env)[0])
+      new_list.push(arg);
     }
   }
+  // console.log("new_list")
+  // console.log(new_list);
   return [new_list, env];
 }
 
@@ -5385,10 +5392,10 @@ function interpret_program(aex, env) {
   }
 
   for (line of aex.args) {
-    console.log("YOOOOOOOOO")
-    console.log(line.head)
-    console.log(env);
-    console.log(JSON.stringify(env));
+    // console.log("YOOOOOOOOO")
+    // console.log(line.head)
+    // console.log(env);
+    // console.log(JSON.stringify(env));
     var [_, env] = interpret(line, env);
   }
   return [aex, env]
@@ -5427,8 +5434,8 @@ function start(aex) {
   var reordered_lines = grid_params_and_object_type_lines.concat(initnext_lines).concat(on_clause_lines).concat(lifted_lines)
 
   for (line of lifted_lines) {
-    console.log("HUHHHHHHHHHHHH")
-    console.log(line)
+    // console.log("HUHHHHHHHHHHHH")
+    // console.log(line)
     var var_name = line.args[0] 
     // construct history variable in state
     env.state.histories[var_name] = {};
@@ -5440,7 +5447,7 @@ function start(aex) {
 
   // add background to scene 
   var background_assignments = lifted_lines.filter(l => l.args[0] == "background")
-  var background = background_assignments.length != 0 ? background_assignments[-1].args[1] : "#ffffff00"
+  var background = background_assignments.length != 0 ? background_assignments[background_assignments.length - 1].args[1] : "#ffffff00"
   env.state.scene.background = background
 
   // initialize lifted variables
@@ -5463,7 +5470,7 @@ function start(aex) {
 }
 
 function step(aex, env, user_events=null) {
-  console.log("STEP");
+  // console.log("STEP");
   // update env with user event 
   if (user_events != null) {
     for (user_event in user_events) {
@@ -5500,7 +5507,7 @@ function update_state(env_) {
   
     // delete earlier times stored in history, since we only use prev up to 1 level back
     if (env_.state.time > 0) {
-      // delete env_.state.histories[key][(env_.state.time - 1).toString()];
+      delete env_.state.histories[key][(env_.state.time - 1).toString()];
     }
 
   }
@@ -5535,16 +5542,16 @@ function interpret_over_time(aex, iters, user_events=[]) {
   if (user_events.length == 0) {
     for (let i = 0; i < iters; i++) {
       // @show i
-      console.log("i am here");
-      console.log(i);
-      console.log(iters);
+      // console.log("i am here");
+      // console.log(i);
+      // console.log(iters);
       env_ = step(new_aex, env_);
     }
   } else {
     for (let i = 0; i < iters; i++) {
       // @show i
-      console.log("i");
-      console.log(i);
+      // console.log("i");
+      // console.log(i);
       var env_ = step(new_aex, env_, user_events[i]);
     }
   }
@@ -5597,10 +5604,10 @@ function test_particle() {
     } else {
       var user_event = {"left" : false, "right" : false, "up" : false, "down" : false, "click" : null}
     }
-    // console.log(i);
+    // // console.log(i);
     env_ = step(aex_, env_, user_event);
   }
-  // console.log(env_.state.histories.particle);
+  // // console.log(env_.state.histories.particle);
   return env_;
   return [`0`, `1`, `2`, `3`, `4`, `5`].map(i => env_.state.histories.particle[i].origin);
 }
@@ -5623,10 +5630,10 @@ function test_particle_list() {
     } else {
       var user_event = {"left" : false, "right" : false, "up" : false, "down" : false, "click" : null}
     }
-    // console.log(i);
+    // // console.log(i);
     env_ = step(aex_, env_, user_event);
   }
-  // console.log(env_.state.histories.particle);
+  // // console.log(env_.state.histories.particle);
   return env_;
   // return [`0`, `1`, `2`, `3`, `4`, `5`].map(i => [env_.state.histories.particles[i][0].origin, env_.state.histories.particles[i][1].origin]);
 }
@@ -5655,12 +5662,12 @@ function test_particle_actual() {
     } else {
       var user_event = {"left" : false, "right" : false, "up" : false, "down" : false, "click" : null}
     }
-    // console.log(i);
+    // // console.log(i);
     // env_ = step(aex_, env_, user_event);
     user_events.push(user_event);
   }
   var env_ = interpret_over_time_observations(aex, user_events.length, user_events);
-  // console.log(env_.state.histories.particle);
+  // // console.log(env_.state.histories.particle);
   return env_;
   // return [`0`, `1`, `2`, `3`, `4`, `5`].map(i => [env_.state.histories.particles[i].map(o => [o.origin.x, o.origin.y])]);
 }
@@ -5691,18 +5698,18 @@ function test_ants_actual() {
   // var [aex_, env_] = start(aex);
 
   var user_events = [];
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < 3; i++) {
     if (i == 1) {
       var user_event = {"left" : false, "right" : false, "up" : false, "down" : false, "click" : {"x" : Math.floor(15 * Math.random()), "y" : Math.floor(15 * Math.random())}}
     } else {
       var user_event = {"left" : false, "right" : false, "up" : false, "down" : false, "click" : null}
     }
-    // console.log(i);
+    // // console.log(i);
     user_events.push(user_event);
     // env_ = step(aex_, env_, user_event);
   }
   var observations = interpret_over_time_observations(aex, user_events.length, user_events);
-  // console.log(env_.state.histories.particle);
+  // // console.log(env_.state.histories.particle);
   return observations;
   // return [`0`, `1`, `2`, `3`, `4`, `5`].map(i => [env_.state.histories.particles[i].map(o => [o.origin.x, o.origin.y])]);
 }
@@ -5731,12 +5738,12 @@ function test_lights_actual() {
     } else {
       var user_event = {"left" : false, "right" : false, "up" : false, "down" : false, "click" : null}
     }
-    // console.log(i);
+    // // console.log(i);
     // env_ = step(aex_, env_, user_event);
     user_events.push(user_event);
   }
   var observations = interpret_over_time_observations(aex, user_events.length, user_events);
-  // console.log(env_.state.histories.particle);
+  // // console.log(env_.state.histories.particle);
   return observations;
 // return [`0`, `1`, `2`, `3`, `4`, `5`].map(i => [env_.state.histories.particles[i].map(o => [o.origin.x, o.origin.y])]);
 }
@@ -5771,12 +5778,12 @@ function test_paint_actual() {
     } else {
       var user_event = {"left" : false, "right" : false, "up" : true, "down" : false, "click" : null}
     }
-    // console.log(i);
+    // // console.log(i);
     // env_ = step(aex_, env_, user_event);
     user_events.push(user_event);
   }
   var observations = interpret_over_time_observations(aex, user_events.length, user_events);
-  // console.log(env_.state.histories.particle);
+  // // console.log(env_.state.histories.particle);
   return observations;
 // return [`0`, `1`, `2`, `3`, `4`, `5`].map(i => [env_.state.histories.particles[i].map(o => [o.origin.x, o.origin.y])]);
 }
@@ -5834,12 +5841,12 @@ function test_gravity_actual() {
     } else {
       var user_event = {"left" : false, "right" : false, "up" : true, "down" : false, "click" : {"x" : Math.floor(15 * Math.random()), "y" : Math.floor(15 * Math.random())}};
     }
-    // console.log(i);
+    // // console.log(i);
     // env_ = step(aex_, env_, user_event);
     user_events.push(user_event);
   }
   var observations = interpret_over_time_observations(aex, user_events.length, user_events);
-  // console.log(env_.state.histories.particle);
+  // // console.log(env_.state.histories.particle);
   return observations;
 }
 
@@ -5894,12 +5901,12 @@ function test_ice_actual() {
     } else {
       var user_event = {"left" : false, "right" : false, "up" : true, "down" : false, "click" : {"x" : 4, "y" : 4}};
     }
-    // console.log(i);
+    // // console.log(i);
     // env_ = step(aex_, env_, user_event);
     user_events.push(user_event);
   }
   var observations = interpret_over_time_observations(aex, user_events.length, user_events);
-  // console.log(env_.state.histories.particle);
+  // // console.log(env_.state.histories.particle);
   return observations;
   // return env_;
 }
@@ -5957,12 +5964,12 @@ function test_water_plug_actual() {
     } else {
       var user_event = {"left" : false, "right" : false, "up" : true, "down" : false, "click" : {"x" : Math.floor(15 * Math.random()), "y" : Math.floor(15 * Math.random())}};
     }
-    // console.log(i);
+    // // console.log(i);
     // env_ = step(aex_, env_, user_event);
     user_events.push(user_event);
   }
   var observations = interpret_over_time_observations(aex, user_events.length, user_events);
-  // console.log(env_.state.histories.particle);
+  // // console.log(env_.state.histories.particle);
   return observations;
   // return env_;
 }
@@ -6007,12 +6014,12 @@ function test_disease_actual() {
     } else {
       var user_event = {"left" : false, "right" : false, "up" : false, "down" : false, "click" : {"x" : 2, "y" : 1}};
     }
-    // console.log(i);
+    // // console.log(i);
     // env_ = step(aex_, env_, user_event);
     user_events.push(user_event);
   }
   var observations = interpret_over_time_observations(aex, user_events.length, user_events);
-  // console.log(env_.state.histories.particle);
+  // // console.log(env_.state.histories.particle);
   return observations;
   // return env_;
 }
@@ -6095,12 +6102,12 @@ function test_space_invaders_actual() {
     } else {
       var user_event = {"left" : false, "right" : false, "up" : false, "down" : false, "click" : null};
     }
-    // console.log(i);
+    // // console.log(i);
     // env_ = step(aex_, env_, user_event);
     user_events.push(user_event);
   }
   var observations = interpret_over_time_observations(aex, user_events.length, user_events);
-  // console.log(env_.state.histories.particle);
+  // // console.log(env_.state.histories.particle);
   return observations;
   // return env_;
 }
