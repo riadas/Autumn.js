@@ -974,25 +974,29 @@
     
           function step_time() {
             // console.log("step_time");
-            env = step(aex, env);
+            if (env.state.time < 15000) {
+              env = step(aex, env);
 
-            var background = env.state.scene.background  
-            var cells = interpret({ "head" : "call", "args": ["renderScene", [env.state.scene]]}, env)[0].map(cell => [cell.position.x, cell.position.y, JSON.stringify(cell.color).slice(8, -2)]);
-            
-            // console.log("background");
-            // console.log(background);
+              var background = env.state.scene.background  
+              var cells = interpret({ "head" : "call", "args": ["renderScene", [env.state.scene]]}, env)[0].map(cell => [cell.position.x, cell.position.y, JSON.stringify(cell.color).slice(8, -2)]);
 
-            // console.log("cells");
-            // console.log(cells);
-            
-            updateCellStyles(JSON.stringify([background, cells]));
+              // console.log("background");
+              // console.log(background);
 
-            // Request finished. Do processing here.
-            clearInterval(intervalID);
-            if (paused) {
-              intervalID = -1;
+              // console.log("cells");
+              // console.log(cells);
+
+              updateCellStyles(JSON.stringify([background, cells]));
+
+              // Request finished. Do processing here.
+              clearInterval(intervalID);
+              if (paused) {
+                intervalID = -1;
+              } else {
+                intervalID = setInterval(step_time, timestep);
+              }
             } else {
-              intervalID = setInterval(step_time, timestep);
+              playOrPauseClick();
             }
           }
     
