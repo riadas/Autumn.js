@@ -4808,6 +4808,14 @@ function closest(args, state=null) {
       var closestDistance = distances[0];
       var closest = positions.filter(pos => distance([pos, object.origin]) == closestDistance)[0];
       return closest;
+    } else if (arr[0].origin != undefined) {
+      var [object, objects] = JSON.parse(JSON.stringify(args));
+      var positions = objects.map(o => o.origin);
+      var distances = positions.map(pos => distance([pos, object.origin]));
+      distances.sort((a, b) => a - b);
+      var closestDistance = distances[0];
+      var closest = positions.filter(pos => distance([pos, object.origin]) == closestDistance)[0];
+      return closest;
     } else { // array of types
       var [object, types] = args;
       var objects_of_type = state.scene.objects.filter(obj => (types.includes(obj.type)) && (obj.alive))
